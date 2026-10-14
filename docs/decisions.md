@@ -90,7 +90,7 @@ A log of judgment calls, newest last. Each entry says what was decided, why, and
 
 ## 2026-10-14: Gemini Interactions endpoint, model gemini-nano-banana-2.1
 
-**Decided:** The function calls `POST /v1beta/interactions` with `response_format: {type: 'image', mime_type: 'image/png', aspect_ratio: '1:1'}` and the model `gemini-nano-banana-2.1`, overridable by `GEMINI_IMAGE_MODEL`.
+**Decided:** The function calls `POST /v1beta/interactions` with `response_format: {type: 'image', mime_type: 'image/jpeg', aspect_ratio: '1:1'}` (PNG is rejected with "Supported values: 'image/jpeg'") and the model `gemini-nano-banana-2.1`, overridable by `GEMINI_IMAGE_MODEL`.
 **Why:** On 2026-10-14 the official image-generation docs show only this endpoint and use that model in every example. The older `generateContent` shape no longer appears there, and `gemini-2.5-flash-image` is listed as shut down on 2026-10-02.
 **Rules out:** The `generateContent` request shape named in the first draft of the architecture doc.
 **Risk:** No key was available at build time, so the call is untested. The response parser searches for any `{type:'image', data}` block rather than assuming a path.

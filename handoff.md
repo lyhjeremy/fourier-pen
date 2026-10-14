@@ -51,7 +51,7 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 ## Environment notes
 
 - `GEMINI_API_KEY` was not available on this machine at build time, so the prompt path is deployed but untested end to end. The function returns `{error:'unavailable', reason:'not_configured'}` without a key and the UI says so. First thing to do: add the key in Vercel project settings and try "a bicycle".
-- The Gemini request uses the Interactions endpoint documented at ai.google.dev on 2026-10-14 (`POST /v1beta/interactions`, `response_format: {type:'image'}`). `findImage()` in the function searches the response for any `{type:'image', data}` block, so a change in response shape is survivable. The old `generateContent` shape is not used.
+- The Gemini request uses the Interactions endpoint documented at ai.google.dev on 2026-10-14 (`POST /v1beta/interactions`, `response_format: {type:'image', mime_type:'image/jpeg'}`; PNG is rejected). `findImage()` in the function searches the response for any `{type:'image', data}` block, so a change in response shape is survivable. The old `generateContent` shape is not used.
 - Rate limiting: the Vercel WAF rate-limit rule (Hobby allows up to 3 custom rules) must be added in the dashboard; it is not in the repo. The in-function limiter is per warm instance only.
 - `ffprobe` on this machine is broken (missing libx265), so the WebM was verified by size and by the browser's own recorder state, not by decoding.
 - Google Drive folder: large screenshot runs should go to the scratchpad, not the project folder, or Drive syncs them.

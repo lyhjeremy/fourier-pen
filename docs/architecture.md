@@ -130,7 +130,7 @@ Holds the app state:
    - Rejects non-POST, bodies over 2 KB, prompts outside 3 to 200 chars (400).
    - Rate limits (see 5).
    - Builds the model prompt: "A clean single-line drawing of {prompt}. Black ink on a plain white background. Continuous outlines only, no shading, no hatching, no text, no frame, centred, filling most of the image."
-   - Calls `POST https://generativelanguage.googleapis.com/v1beta/interactions` with header `x-goog-api-key`, body `{ model, input: [{type:'text', text}], response_format: {type:'image', mime_type:'image/png', aspect_ratio:'1:1'} }`. Default model `gemini-nano-banana-2.1` (the one the official docs use on 2026-10-14); `GEMINI_IMAGE_MODEL` overrides it. `gemini-3.1-flash-image` and `gemini-3-pro-image` are the other current IDs.
+   - Calls `POST https://generativelanguage.googleapis.com/v1beta/interactions` with header `x-goog-api-key`, body `{ model, input: [{type:'text', text}], response_format: {type:'image', mime_type:'image/jpeg', aspect_ratio:'1:1'} }` (the endpoint rejects `image/png`, checked 2026-10-14). Default model `gemini-nano-banana-2.1` (the one the official docs use on 2026-10-14); `GEMINI_IMAGE_MODEL` overrides it. `gemini-3.1-flash-image` and `gemini-3-pro-image` are the other current IDs.
    - Finds the first `{type:'image', data}` block anywhere in the response (`findImage`), returns `{ image: dataUrl }` with `Cache-Control: no-store`.
    - Maps failures to `{ error: 'rate_limited' | 'blocked' | 'unavailable' }` with matching status codes 429, 422, 502.
 3. The client decodes the data URL into an `Image`, sets it as `source`, and calls `run()`.

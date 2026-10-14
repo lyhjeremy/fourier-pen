@@ -17,7 +17,7 @@ function json(body, status, extra) {
 function findImage(node, depth = 0) {
   if (!node || typeof node !== 'object' || depth > 8) return null;
   if (node.type === 'image' && typeof node.data === 'string') {
-    return { mime: node.mime_type || node.mimeType || 'image/png', data: node.data };
+    return { mime: node.mime_type || node.mimeType || 'image/jpeg', data: node.data };
   }
   if (node.inlineData && typeof node.inlineData.data === 'string') {
     return { mime: node.inlineData.mimeType || 'image/png', data: node.inlineData.data };
@@ -77,7 +77,8 @@ export async function POST(request) {
       body: JSON.stringify({
         model: MODEL,
         input: [{ type: 'text', text: instruction }],
-        response_format: { type: 'image', mime_type: 'image/png', aspect_ratio: '1:1' },
+        // The Interactions endpoint accepts only image/jpeg here (checked 2026-10-14).
+        response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '1:1' },
       }),
       signal: ctrl.signal,
     });
@@ -88,7 +89,15 @@ export async function POST(request) {
   }
   clearTimeout(timer);
 
-  if (res.status === 429) return json({ error: 'rate_limited' }, 429, { 'retry-after': '60' });
+  if (res.status === 429) {
+    // Google's own 429 covers two cases: a burst (retry later) and a tier with no image quota at all.
+    const txt = await res.text().catch(() => '');
+    if (/limit:\s*0\b|free tier|upgrade your tier/i.test(txt)) {
+      console.error('gemini quota: the key has no image-generation quota', txt.slice(0, 200));
+      return json({ error: 'unavailable', reason: 'quota' }, 503);
+    }
+    return json({ error: 'rate_limited' }, 429, { 'retry-after': '60' });
+  }
   if (!res.ok) {
     const txt = await res.text().catch(() => '');
     console.error('gemini status', res.status, txt.slice(0, 300));
