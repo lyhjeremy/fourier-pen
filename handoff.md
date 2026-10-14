@@ -50,7 +50,7 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 
 ## Environment notes
 
-- `GEMINI_API_KEY` was not available on this machine at build time, so the prompt path is deployed but untested end to end. The function returns `{error:'unavailable', reason:'not_configured'}` without a key and the UI says so. First thing to do: add the key in Vercel project settings and try "a bicycle".
+- `GEMINI_API_KEY` is set in Vercel (production and preview) as of 2026-10-14 evening. The key is valid but its Google AI Studio project is on the Free Tier, and every image model (`gemini-nano-banana-2.1`, `gemini-3.1-flash-image`, `gemini-3.1-flash-lite-image`, `gemini-3-pro-image`, `gemini-2.5-flash-image`) returns 429 `limit: 0 requests per day on Free Tier`. The function maps that to `{error:'unavailable', reason:'quota'}` (503) so the UI says the service is unavailable. To switch prompts on: enable billing for that project at https://ai.dev/rate-limit (the paid tier), then try "a bicycle". No code change is needed. Direct curl against the Interactions endpoint confirmed the request shape is otherwise accepted (only `image/jpeg` is allowed for the response).
 - The Gemini request uses the Interactions endpoint documented at ai.google.dev on 2026-10-14 (`POST /v1beta/interactions`, `response_format: {type:'image', mime_type:'image/jpeg'}`; PNG is rejected). `findImage()` in the function searches the response for any `{type:'image', data}` block, so a change in response shape is survivable. The old `generateContent` shape is not used.
 - Rate limiting: the Vercel WAF rate-limit rule (Hobby allows up to 3 custom rules) must be added in the dashboard; it is not in the repo. The in-function limiter is per warm instance only.
 - `ffprobe` on this machine is broken (missing libx265), so the WebM was verified by size and by the browser's own recorder state, not by decoding.
@@ -58,7 +58,7 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 
 ## Next steps
 
-1. Add `GEMINI_API_KEY` in Vercel and verify a prompt end to end; then add the WAF rate-limit rule and a Google Cloud budget alert.
+1. Enable billing on the Gemini key's project (Free Tier has no image quota), verify "a bicycle" draws end to end, then add the WAF rate-limit rule on `/api/generate` and a budget alert.
 2. Freehand drawing input (skip edge detection, feed points straight to the resampler).
 3. SVG path input.
 4. WebCodecs video export if anyone asks for 4K or faster than real time.
