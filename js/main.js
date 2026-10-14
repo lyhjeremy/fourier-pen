@@ -240,12 +240,15 @@ ui.swapColors.addEventListener('click', () => {
   .forEach((el) => el.addEventListener('input', () => { syncLabels(); updateExportPreview(); }));
 
 /* ---------- prompt ---------- */
+const PROMPT_HINT = 'An image model draws a line-art version, then the page traces it. Takes 5 to 15 seconds.';
+let promptNote = ''; // a result or error message that outlives the next syncPrompt
 function syncPrompt() {
   const n = ui.prompt.value.trim().length;
   const ok = n >= PROMPT_MIN && n <= PROMPT_MAX && !app.prompting;
   ui.promptGo.disabled = !ok;
+  if (app.prompting) return;
   if (n > 0 && n < PROMPT_MIN) ui.promptHint.textContent = `At least ${PROMPT_MIN} characters.`;
-  else if (!app.prompting) ui.promptHint.textContent = 'An image model draws a line-art version, then the page traces it. Takes 5 to 15 seconds.';
+  else ui.promptHint.textContent = promptNote || PROMPT_HINT;
 }
 async function runPrompt() {
   const text = ui.prompt.value.trim();
@@ -261,19 +264,19 @@ async function runPrompt() {
     setSkeleton(false);
     hideStatus();
     run();
-    ui.promptHint.textContent = `Drawn from "${text}".`;
+    promptNote = `Drawn from "${text}".`;
   } catch (e) {
     setSkeleton(false);
     hideStatus();
     const msg = PROMPT_MESSAGES[e && e.code] || PROMPT_MESSAGES.unavailable;
-    ui.promptHint.textContent = msg;
+    promptNote = msg;
     showStatus(msg);
     setTimeout(() => { if (ui.statusText.textContent === msg && app.model) hideStatus(); }, 6000);
   } finally {
     app.prompting = false; syncPrompt();
   }
 }
-ui.prompt.addEventListener('input', syncPrompt);
+ui.prompt.addEventListener('input', () => { promptNote = ''; syncPrompt(); });
 ui.prompt.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); runPrompt(); } });
 ui.promptGo.addEventListener('click', runPrompt);
 

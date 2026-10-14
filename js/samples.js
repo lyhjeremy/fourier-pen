@@ -48,7 +48,7 @@ export function sampleCanvas(kind) {
     x.fillStyle = WHITE; x.beginPath(); x.ellipse(220, 210, 40, 26, -0.6, 0, Math.PI * 2); x.fill();
   } else {
     x.font = '420px "Apple Symbols", "Segoe UI Symbol", "Noto Music", "DejaVu Sans", serif';
-    x.fillText('♫', 300, 310);
+    x.fillText(String.fromCharCode(0x266B), 300, 310); // beamed eighth notes
   }
   return c;
 }
