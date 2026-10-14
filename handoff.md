@@ -44,7 +44,9 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 - 2026-10-14: 18 Node tests pass, including an exact-output parity test of the iterative Euler tour against the prototype's recursive one on 300 random strokes.
 - 2026-10-14: headless Chromium, "Fourier" sample at defaults: 1,566 edge pixels, 10 strokes, 9 bridges (64 px), DFT 8 ms at N = 2,048, 21 ms at 4,096. Zero console errors. No horizontal overflow at 390 px.
 - 2026-10-14: PNG (2048 px), SVG, CSV and WebM (2.2 MB for a 4 s lap) downloads all produced valid files in headless Chromium.
-- 2026-10-14: `designcheck.py` passes.
+- 2026-10-14: `designcheck.py` and `prose.py` pass on the tracked files (note: the checker scans only tracked files inside a git repo, so run it after `git add`, not before the first commit).
+- 2026-10-14: production at https://fourier-pen.vercel.app/: `/`, `/overview/`, `/privacy/`, `/terms/`, the sample photo, fonts and modules all 200; headless Chromium loads the Einstein example with zero third-party requests and all five fonts; `POST /api/generate` returns `{error:'unavailable', reason:'not_configured'}` with 503 until a key is set; `GET` returns 405.
+- 2026-10-14: portfolio row live at https://lyhjeremy.com/ and in the profile README; release tag v1.0.0.
 
 ## Environment notes
 
