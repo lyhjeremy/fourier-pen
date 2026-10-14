@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fourier Pen privacy</title>
+<meta name="description" content="What Fourier Pen collects (almost nothing), where a text prompt goes, and what never leaves your browser.">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body class="doc">
+<main class="wrap">
+  <p class="meta">Fourier Pen</p>
+  <h1>Privacy</h1>
+  <p class="lede">Last updated 2026-10-14.</p>
+
+  <h2>Pictures you upload</h2>
+  <p>A picture you choose, drop or paste is read by your browser and processed there. It is never sent to a server. There is no code path in this site that uploads an image anywhere. You can check this in the <a href="https://github.com/lyhjeremy/fourier-pen">source</a>: the only network request the page makes is the one described in the next section.</p>
+
+  <h2>Text prompts</h2>
+  <p>If you type a text prompt and press "Draw it", the text you typed is sent to this site's own server function, which wraps it in a fixed instruction and sends it to Google's Gemini image model. Google receives the prompt text and returns an image. Google's handling of that request is covered by the <a href="https://ai.google.dev/gemini-api/terms">Gemini API terms</a>. The server function does not store the prompt or the image, and it logs only the outcome of the request (success, rate limited, blocked, failed) and the prompt's length, never its content.</p>
+  <p>The server also sees your IP address, which it uses only to limit how many prompts one address can send in a ten-minute window. Those counts are kept in memory for at most ten minutes and are never written anywhere.</p>
+
+  <h2>Saved files</h2>
+  <p>PNG, SVG, CSV and video files are generated in your browser and downloaded directly. They do not pass through a server.</p>
+
+  <h2>Cookies, analytics and third parties</h2>
+  <p>There are no cookies, no analytics and no third-party scripts. Fonts are served from this site. The page stores one value in your browser's local storage: your theme choice (light, dark or system), if you set one. Clear your browser's site data to remove it.</p>
+
+  <h2>Hosting</h2>
+  <p>The site is hosted on Vercel, which keeps standard web server request logs (IP address, user agent, URL, time) for its own operations. Those logs are governed by <a href="https://vercel.com/legal/privacy-policy">Vercel's privacy policy</a>.</p>
+
+  <h2>Deletion requests</h2>
+  <p>Nothing you enter is retained by this site, so there is nothing to delete. For anything about Vercel's or Google's logs, use the links above. For questions about this site, email <a href="mailto:lyhjeremy@gmail.com">lyhjeremy@gmail.com</a>.</p>
+
+  <footer class="site-footer">
+    <a href="../">Fourier Pen</a>
+    <a href="../terms/">Terms</a>
+    <a href="https://github.com/lyhjeremy/fourier-pen">Source</a>
+  </footer>
+</main>
+</body>
+</html>

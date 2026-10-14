@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fourier Pen: any picture, one line, a chain of spinning arrows</title>
+<meta name="description" content="Upload a picture or type a prompt. Fourier Pen finds the outlines, threads them into one continuous line, and redraws it with rotating arrows: a complex Fourier series you can watch, read and save as a wallpaper or video.">
+<meta name="theme-color" content="#EDEDE7">
+<meta property="og:title" content="Fourier Pen">
+<meta property="og:description" content="Any picture, one line, a chain of spinning arrows. A Fourier series drawing machine in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://fourier-pen.vercel.app/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23EDEDE7'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%231C1E1B' stroke-width='2'/%3E%3Ccircle cx='24' cy='11' r='5' fill='none' stroke='%231C1E1B' stroke-width='2'/%3E%3Cline x1='16' y1='16' x2='24' y2='11' stroke='%238C3A1E' stroke-width='2.5'/%3E%3Ccircle cx='27' cy='7' r='2' fill='%238C3A1E'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script>
+try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<a href="overview/" data-overview-link class="writeup-bar">Read the full writeup &rarr;</a>
+
+<div class="app" id="main">
+  <header class="top">
+    <div>
+      <h1>Fourier Pen</h1>
+      <p class="tagline">Any picture, one line, a chain of spinning arrows. The page finds the outlines in a picture, threads them into a single continuous line, and redraws that line with rotating arrows stacked tip to tail. Each arrow is one term of a Fourier series.</p>
+    </div>
+    <div class="top-tools">
+      <button class="btn btn-small" type="button" id="theme" aria-pressed="false">Theme: system</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="stage-wrap" aria-label="Fourier drawing">
+      <div class="stage">
+        <canvas id="stage"></canvas>
+        <div class="status" id="status" hidden><div id="statusText"></div></div>
+        <div class="stage-bar">
+          <span></span>
+          <div class="btn-row">
+            <button class="btn btn-small" id="play" type="button" aria-pressed="false">Pause</button>
+            <button class="btn btn-small" id="restart" type="button">Restart</button>
+            <button class="btn btn-small" id="follow" type="button" aria-pressed="false">Follow pen</button>
+          </div>
+        </div>
+        <div class="readout" id="readout" aria-live="off">Preparing</div>
+        <div class="progress" id="progress" hidden><i></i></div>
+      </div>
+      <p class="stage-note">Pictures you upload never leave your browser. A text prompt is sent to Google's image model through this site's server. <a href="privacy/">Privacy</a>.</p>
+    </section>
+
+    <aside class="panel">
+      <div class="group">
+        <h2>Source</h2>
+        <label class="drop" id="drop">
+          <input class="sr" type="file" id="file" accept="image/*">
+          <strong>Choose a picture</strong>
+          <span>or drop or paste one here</span>
+        </label>
+        <div class="field">
+          <div class="field-head"><label for="prompt">Or describe one</label></div>
+          <div class="prompt-row">
+            <input type="text" id="prompt" maxlength="200" placeholder="Albert Einstein sticking out his tongue" autocomplete="off">
+            <button class="btn btn-primary" type="button" id="promptGo" disabled>Draw it</button>
+          </div>
+          <span class="hint" id="promptHint">An image model draws a line-art version, then the page traces it. Takes 5 to 15 seconds.</span>
+        </div>
+        <div class="samples">
+          <span>Examples:</span>
+          <button class="chip" type="button" data-sample="word" aria-pressed="true">Fourier</button>
+          <button class="chip" type="button" data-sample="pi" aria-pressed="false">&pi;</button>
+          <button class="chip" type="button" data-sample="heart" aria-pressed="false">Heart</button>
+          <button class="chip" type="button" data-sample="clef" aria-pressed="false">Notes</button>
+          <button class="chip" type="button" data-sample="einstein" aria-pressed="false">Einstein</button>
+        </div>
+        <div class="previews">
+          <figure><div class="prev-box"><canvas id="srcPrev" width="240" height="240"></canvas><div class="skeleton prev-skel" id="srcSkel" hidden></div></div><figcaption>Picture</figcaption></figure>
+          <figure><div class="prev-box"><canvas id="edgePrev" width="240" height="240"></canvas><div class="skeleton prev-skel" id="edgeSkel" hidden></div></div><figcaption>Outlines found</figcaption></figure>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Outline</h2>
+        <div class="field">
+          <div class="field-head"><span id="modeLabel" class="lbl">Pen path</span></div>
+          <div class="seg" role="radiogroup" aria-labelledby="modeLabel">
+            <label><input type="radio" name="mode" id="modeOne" value="one" checked>One continuous line</label>
+            <label><input type="radio" name="mode" id="modeHop" value="hop">Hop between strokes</label>
+          </div>
+          <span class="hint" id="modeHint"></span>
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="detail">Detail</label><output id="detailOut" for="detail"></output></div>
+          <input type="range" id="detail" min="1" max="100" value="35">
+          <span class="hint">More detail keeps fainter edges, like hair and wrinkles.</span>
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="smooth">Smoothing</label><output id="smoothOut" for="smooth"></output></div>
+          <input type="range" id="smooth" min="0" max="40" value="14">
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="minlen">Skip strokes shorter than</label><output id="minlenOut" for="minlen"></output></div>
+          <input type="range" id="minlen" min="2" max="80" value="10">
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="points">Points along the line</label></div>
+          <select id="points">
+            <option value="512">512</option>
+            <option value="1024">1,024</option>
+            <option value="2048" selected>2,048</option>
+            <option value="4096">4,096</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Drawing</h2>
+        <div class="field">
+          <div class="field-head"><label for="arrows">Arrows</label><output id="arrowsOut" for="arrows"></output></div>
+          <input type="range" id="arrows" min="0" max="1000" value="820">
+          <span class="hint">Fewer arrows give a blurrier, rounder version of the shape.</span>
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="speed">Time per drawing</label><output id="speedOut" for="speed"></output></div>
+          <input type="range" id="speed" min="4" max="60" value="18">
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="circles" checked> Show circles</label>
+          <label id="jumpsRow"><input type="checkbox" id="jumps" checked> Show pen jumps between strokes</label>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>The maths</h2>
+        <div class="formula" aria-label="c sub n equals one over N times the sum over k of z sub k times e to the minus 2 pi i n k over N">
+          c<sub>n</sub> = <span class="frac"><span>1</span><span>N</span></span> &Sigma;<sub>k</sub> z<sub>k</sub> e<sup>&minus;2&pi;ink/N</sup>
+        </div>
+        <p class="small">Each point on the line is a complex number z<sub>k</sub>. Each coefficient c<sub>n</sub> is one arrow: its size is |c<sub>n</sub>|, and it turns n times per drawing. The biggest arrows are drawn first.</p>
+        <div class="eq" id="eq">z(t) &asymp; &hellip;</div>
+        <div class="tbl-wrap">
+          <table class="coef">
+            <thead><tr><th>Arrow</th><th class="num">Turns n</th><th class="num">Length |c<sub>n</sub>|</th><th class="num">Start angle</th></tr></thead>
+            <tbody id="coefBody"></tbody>
+          </table>
+        </div>
+        <p class="small">The 10 largest arrows for the current picture, with t running from 0 to 1 over one drawing. Lengths are in picture units, where the drawing spans &minus;1 to 1. Angles are in radians.</p>
+        <dl class="stats">
+          <dt>Edge pixels</dt><dd id="stEdges">&ndash;</dd>
+          <dt>Strokes threaded</dt><dd id="stStrokes">&ndash;</dd>
+          <dt id="stLinkLabel">Bridges added</dt><dd id="stLinks">&ndash;</dd>
+          <dt>Points</dt><dd id="stPoints">&ndash;</dd>
+          <dt>Arrows in use</dt><dd id="stArrows">&ndash;</dd>
+          <dt>Shape energy captured</dt><dd id="stEnergy">&ndash;</dd>
+          <dt>Transform time</dt><dd id="stTime">&ndash;</dd>
+        </dl>
+      </div>
+
+      <div class="group">
+        <h2>Export</h2>
+        <div class="field">
+          <div class="field-head"><label for="preset">Size</label><output id="sizeOut" for="preset"></output></div>
+          <select id="preset"></select>
+        </div>
+        <div class="row2" id="customRow" hidden>
+          <div class="field"><div class="field-head"><label for="expW">Width</label></div><input type="number" id="expW" min="256" max="8192" step="1" value="2048"></div>
+          <div class="field"><div class="field-head"><label for="expH">Height</label></div><input type="number" id="expH" min="256" max="8192" step="1" value="2048"></div>
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="lineWidth">Line width</label><output id="lineWidthOut" for="lineWidth"></output></div>
+          <input type="range" id="lineWidth" min="5" max="60" value="15">
+        </div>
+        <div class="row2">
+          <div class="field"><div class="field-head"><label for="lineColor">Line</label></div><input type="color" id="lineColor" value="#1C1E1B"></div>
+          <div class="field"><div class="field-head"><label for="bgColor">Background</label></div><input type="color" id="bgColor" value="#EDEDE7"></div>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="bgTransparent"> Transparent background (PNG only)</label>
+          <label id="expJumpsRow"><input type="checkbox" id="expJumps" checked> Include pen jumps</label>
+          <label><input type="checkbox" id="vidCircles" checked> Show circles and arrows in the video</label>
+        </div>
+        <div class="row2">
+          <button class="btn" type="button" id="swapColors">Swap colours</button>
+          <div class="field"><div class="field-head"><label for="margin">Margin</label><output id="marginOut" for="margin"></output></div><input type="range" id="margin" min="0" max="25" value="8"></div>
+        </div>
+        <figure class="export-preview">
+          <canvas id="expPrev" width="240" height="240"></canvas>
+          <figcaption id="expSummary"></figcaption>
+        </figure>
+        <div class="save-row">
+          <button class="btn save" type="button" id="savePng" disabled>Picture <span>PNG</span></button>
+          <button class="btn save" type="button" id="saveSvg" disabled>Picture <span>SVG, vector</span></button>
+          <button class="btn save" type="button" id="saveCsv" disabled>Every arrow's numbers <span>CSV</span></button>
+          <button class="btn save" type="button" id="saveWebm" disabled>Video of one drawing <span id="webmNote">WebM</span></button>
+          <button class="btn save" type="button" id="saveMp4" disabled hidden>Video of one drawing <span>MP4</span></button>
+        </div>
+        <p class="small" id="saveMsg">Saves the drawing as it looks with the current number of arrows.</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    <span>Fourier Pen, built by <a href="https://lyhjeremy.com/">Jeremy Lee</a>.</span>
+    <a href="overview/">Writeup</a>
+    <a href="https://github.com/lyhjeremy/fourier-pen">Source</a>
+    <a href="privacy/">Privacy</a>
+    <a href="terms/">Terms</a>
+    <span>MIT &copy; 2026</span>
+  </footer>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

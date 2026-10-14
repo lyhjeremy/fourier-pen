@@ -1,0 +1,13 @@
+{
+  "name": "fourier-pen",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Any picture, one line, a chain of spinning arrows. A Fourier series drawing machine in the browser.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "serve": "npx serve -l 5173 .",
+    "dev": "vercel dev"
+  },
+  "license": "MIT"
+}

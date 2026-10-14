@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Fourier Pen: any picture, one line, a chain of spinning arrows</title>
+<meta name="description" content="A browser tool that finds the outlines in a picture, threads them into a single continuous line, and redraws it with rotating arrows: a complex Fourier series you can watch, read and save as a wallpaper or video." />
+<meta name="theme-color" content="#EDEDE7" />
+<meta property="og:title" content="Fourier Pen" />
+<meta property="og:description" content="Upload a picture or type a prompt. Watch a chain of rotating arrows draw it, read the actual coefficients, save it as a wallpaper or a video." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://fourier-pen.vercel.app/overview/" />
+<link href="" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #EDEDE7;
+    --card: #F5F5F0;
+    --plate: #F5F5F0;
+    --ink: #1C1E1B;
+    --ink2: #3C403A;
+    --muted: #52564E;
+    --rule: #C6C7BF;
+    --accent: #8C3A1E;
+    --accent2: #2C5852;
+    --link: #8C3A1E;
+    --serif: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    --sans: "IBM Plex Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+    --shadow: 0 1px 2px rgba(26,26,46,.05), 0 10px 34px rgba(26,26,46,.07);
+    --spine:  92px;
+    --col:    min(100% - 2.6rem, 62rem);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #191B18;
+      --card: #212420;
+      --plate: #212420;
+      --ink: #E6E6DE;
+      --ink2: #C4C7BC;
+      --muted: #A2A69B;
+      --rule: #3B3F38;
+      --accent: #D8825C;
+      --accent2: #74AFA5;
+      --link: #D8825C;
+      --shadow: 0 1px 2px rgba(0,0,0,.32), 0 10px 34px rgba(0,0,0,.4);
+    }
+  }
+
+  @font-face{font-family:"Source Serif 4";src:url("../fonts/SourceSerif4-400.woff2")format("woff2");font-weight:400;font-display:swap}
+  @font-face{font-family:"Source Serif 4";src:url("../fonts/SourceSerif4-600.woff2")format("woff2");font-weight:600;font-display:swap}
+  @font-face{font-family:"IBM Plex Sans";src:url("../fonts/IBMPlexSans-400.woff2")format("woff2");font-weight:400;font-display:swap}
+  @font-face{font-family:"IBM Plex Sans";src:url("../fonts/IBMPlexSans-600.woff2")format("woff2");font-weight:600;font-display:swap}
+  @font-face{font-family:"IBM Plex Mono";src:url("../fonts/IBMPlexMono-400.woff2")format("woff2");font-weight:400;font-display:swap}
+
+  * { box-sizing: border-box; border-radius: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--serif); font-size: clamp(17px, 0.55rem + 0.6vw, 19.5px);
+    line-height: 1.68; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--link); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 0; }
+  strong { font-weight: 700; color: var(--ink); }
+  code { font-family: var(--mono); font-size: .86em;
+         background: color-mix(in srgb, var(--ink) 7%, transparent);
+         padding: .12em .38em; border-radius: 0; }
+  .wrap { width: var(--col); margin: 0 auto; }
+
+  .eyebrow { font-family: var(--mono); font-weight: 600; font-size: 11.5px;
+             letter-spacing: .17em; text-transform: uppercase; color: var(--muted);
+             margin: 0 0 14px; }
+
+  .masthead { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 30px 0 0; }
+  .logo { font-family: var(--sans); font-weight: 800; font-size: 21px;
+          letter-spacing: -.02em; display: flex; align-items: center; gap: 9px; }
+  .dot { width: 9px; height: 9px; border-radius: 0; background: var(--accent); flex: none; }
+  .tagline { font-size: 15px; color: var(--ink2); font-family: var(--sans); }
+
+  .hero { padding: 44px 0 54px; }
+  .kicker { font-family: var(--sans); font-size: clamp(18px, 2.1vw, 23px); font-weight: 600;
+            color: var(--muted); margin: 0 0 8px; letter-spacing: -.01em; }
+  .hero h1 { font-family: var(--sans); font-size: clamp(37px, 6vw, 72px); font-weight: 800;
+             letter-spacing: -.035em; line-height: 1.04; margin: 0; max-width: 17ch; }
+  .hero-sub { margin: 24px 0 0; font-size: 1.06em; color: var(--ink2); max-width: 60ch; }
+
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; align-items: center; }
+  .btn { display: inline-block; padding: 13px 26px; border-radius: 0;
+         font-family: var(--sans); font-weight: 700; font-size: 16px;
+         text-decoration: none; border: 1px solid var(--ink); }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .textlink { font-family: var(--sans); font-size: 16px; font-weight: 600; color: var(--ink2);
+              text-decoration: underline; text-underline-offset: 4px;
+              text-decoration-thickness: 1px; }
+  .textlink:hover { color: var(--ink); }
+
+  .claims { display: grid; grid-template-columns: 1fr; gap: 0 52px; margin: 50px 0 0; }
+  @media (min-width: 760px) { .claims { grid-template-columns: 1fr 1fr; } }
+  .claim { padding: 18px 0 20px; border-top: 1px solid var(--rule); }
+  .claim:first-child, .claim:nth-child(2) { border-top: 2px solid var(--ink); }
+  @media (max-width: 759px) { .claim:nth-child(2) { border-top: 1px solid var(--rule); } }
+  .claim .n { font-family: var(--sans); font-weight: 800; font-size: 40px; line-height: 1.05;
+              color: var(--accent); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .claim h3 { margin: 0 0 6px; }
+  .claim p { margin: 9px 0 0; font-size: 15.5px; color: var(--ink2); line-height: 1.5;
+             font-family: var(--sans); }
+
+  .route { position: relative; padding-bottom: 30px; }
+  .route::before { content: ""; position: absolute; left: calc(var(--spine) / 2); top: 8px;
+                   bottom: 80px; width: 2px; background: var(--rule); }
+  .stop { position: relative; padding: 0 0 76px var(--spine); }
+  .stop::before { content: ""; position: absolute; left: calc(var(--spine) / 2 - 7px); top: 7px;
+                  width: 16px; height: 16px; border-radius: 0;
+                  background: var(--paper); border: 2px solid var(--ink); box-sizing: border-box; }
+  .stop--key::before { background: var(--accent); border-color: var(--accent); }
+  .stop--warn::before { background: var(--accent2); border-color: var(--accent2); }
+  .stop--end::before { background: var(--ink); }
+
+  h2 { font-family: var(--sans); font-size: clamp(27px, 3.7vw, 38px); font-weight: 800;
+       letter-spacing: -.027em; line-height: 1.13; margin: 12px 0 16px; max-width: 19ch; }
+  h3 { font-family: var(--sans); font-size: 17px; font-weight: 700; margin: 0 0 7px;
+       letter-spacing: -.012em; }
+  .stop p { margin: 0 0 17px; max-width: 60ch; color: var(--ink2); }
+
+  .bignum { font-family: var(--sans); font-weight: 800; font-size: clamp(74px, 10vw, 128px);
+            line-height: .86; letter-spacing: -.05em; margin: 6px 0 4px; color: var(--accent);
+            font-variant-numeric: tabular-nums; }
+  .bignum-note { font-family: var(--sans); font-size: 16px; color: var(--muted); margin: 0 0 20px; }
+
+  /* A white-background chart would glow in dark mode; the plate makes it read
+     as a deliberately printed page instead. */
+  figure { margin: 28px 0 0; }
+  .plate { background: var(--plate); border: 1px solid var(--rule); border-radius: 0;
+           padding: 14px; overflow: hidden; }
+  .plate img { border-radius: 0; }
+  .plate--flush { padding: 0; }
+  .shot { border-radius: 0; border: 1px solid var(--rule);
+          overflow: hidden; background: var(--card); }
+  /* min() so the cap never exceeds the column on a phone */
+  .shot--narrow { max-width: min(430px, 100%); }
+  figcaption { margin-top: 11px; font-family: var(--sans); font-size: 14.5px;
+               color: var(--muted); line-height: 1.5; }
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+            gap: 22px; margin-top: 28px; }
+  .panels figure { margin: 0; }
+
+  .pull { margin: 30px 0 0; padding: 20px 25px; border-left: 3px solid var(--accent);
+          background: color-mix(in srgb, var(--accent) 7%, transparent);
+          border-radius: 0; }
+  .pull p { margin: 0 0 9px; color: var(--ink); max-width: none; }
+  .pull p:last-of-type { margin: 0; }
+  .pull .who { font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+               text-transform: uppercase; color: var(--muted); display: block; margin-top: 9px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+          gap: 1px; margin-top: 28px; background: var(--rule);
+          border: 1px solid var(--rule); border-radius: 0; overflow: hidden; }
+  .cell { background: var(--paper); padding: 22px 20px; }
+  .cell p { font-size: 15px; margin: 0; color: var(--ink2); max-width: none;
+            line-height: 1.55; font-family: var(--sans); }
+
+  /* results tables: scroll inside their own box, never the page */
+  .tablewrap { margin-top: 26px; overflow-x: auto; border: 1px solid var(--rule);
+               border-radius: 0; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; min-width: 480px;
+          font-family: var(--sans); font-size: 15.5px; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--rule); }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+       text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  td { color: var(--ink2); font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  .win td { color: var(--ink); font-weight: 700;
+            background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+  /* real terminal output, quoted verbatim */
+  .term { margin-top: 26px; background: #14141f; color: #e6e3da; border-radius: 0;
+          padding: 18px 20px; overflow-x: auto;
+          border: 1px solid #2a2a3a; }
+  .term pre { margin: 0; font-family: var(--mono); font-size: 13px; line-height: 1.62;
+              white-space: pre; }
+  .term .c { color: #9aa08f; }
+  .term .g { color: #7fd18f; }
+  .term .y { color: #E3BC5E; }
+
+  .specs { margin-top: 26px; border-top: 1px solid var(--rule); }
+  .spec { display: grid; grid-template-columns: 1fr; gap: 2px;
+          padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  @media (min-width: 700px) { .spec { grid-template-columns: 178px 1fr; gap: 24px; } }
+  .spec dt { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em;
+             text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+  .spec dd { margin: 0; font-size: 16px; color: var(--ink2); font-family: var(--sans); }
+
+  .close { padding: 6px 0 80px var(--spine); position: relative; }
+  .close h2 { max-width: 20ch; }
+  footer { border-top: 1px solid var(--rule); padding: 28px 0 60px;
+           font-family: var(--sans); font-size: 14.5px; color: var(--muted); }
+  footer a { color: var(--ink2); }
+  footer p { margin: 0 0 8px; }
+
+  @media (max-width: 640px) {
+    :root { --spine: 38px; }
+    .hero { padding: 36px 0 46px; }
+    .stop { padding-bottom: 58px; }
+    .plate { padding: 9px; }
+    .term { padding: 14px 14px; }
+    .term pre { font-size: 11.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .btn { }
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="logo"><span class="dot" aria-hidden="true"></span>Fourier Pen</div>
+    <div class="tagline">any picture, one line, a chain of spinning arrows</div>
+  </header>
+
+  <section class="hero">
+    <p class="kicker">Every closed curve is a sum of circles. This draws yours.</p>
+    <h1>A chain of 519 rotating arrows, drawing Einstein without lifting the pen.</h1>
+
+    <p class="hero-sub">
+      Give it a picture. It finds the outlines, joins them into <strong>one continuous
+      line</strong>, and takes the discrete Fourier transform of that line. Each
+      coefficient becomes an arrow that turns at its own speed; stacked tip to tail,
+      the arrows trace the picture back out. The maths is on the page in real numbers,
+      the drawing saves as a wallpaper, a vector, a CSV or a video, and the picture
+      never leaves your browser.
+    </p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="../">Draw something</a>
+      <a class="textlink" href="https://github.com/lyhjeremy/fourier-pen">or read the code</a>
+    </div>
+
+    <figure style="margin-top:38px">
+      <img width="1600" height="1282" class="shot" src="einstein-light-t75.png" fetchpriority="high"
+        alt="The Fourier Pen stage three quarters of the way through drawing Einstein's 1947 portrait as one continuous ink line, with the face, eyes, nose and jaw complete and a chain of faint grey arrows and circles reaching up to the pen tip in the hair at the upper left." />
+      <figcaption>
+        Three quarters of the way through one drawing. 519 arrows, 103 strokes
+        joined by 102 bridges totalling 562 px, from the 1947 Library of
+        Congress photograph. Captured from the live page, 2026-10-14.
+      </figcaption>
+    </figure>
+
+    <div class="claims">
+      <div class="claim">
+        <div class="n">1 line</div>
+        <p>The pen never lifts. Strokes are joined by the shortest possible bridges and
+           the pen backtracks over its own ink instead of jumping.</p>
+      </div>
+      <div class="claim">
+        <div class="n">8 ms</div>
+        <p>for the full discrete Fourier transform at 2,048 points, direct O(N squared),
+           no FFT. The page reports its own timing.</p>
+      </div>
+      <div class="claim">
+        <div class="n">0 bytes</div>
+        <p>of your picture uploaded. Edge detection, path building, the transform and
+           every export run in the browser. Only a typed prompt goes to a server.</p>
+      </div>
+      <div class="claim">
+        <div class="n">5K</div>
+        <p>and smaller: wallpaper presets for iPhone, MacBook, Full HD and 4K, in your own
+           colours, plus SVG, CSV and WebM or MP4 video.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+<div class="route">
+
+  <section class="stop">
+    <p class="eyebrow">Start · the idea</p>
+    <h2>A drawing is a list of complex numbers, and a list of complex numbers has a Fourier series</h2>
+    <p>
+      Put the picture on the complex plane: every point on the line is a number
+      z = x + iy. Walk the line at constant speed over one unit of time and you have a
+      periodic function z(t). Any periodic function is a sum of rotating terms,
+      c<sub>n</sub> e<sup>2&pi;int</sup>, one for each integer frequency n. The
+      coefficient c<sub>n</sub> is a complex number too: its size is the length of an
+      arrow, its argument is the angle the arrow starts at, and n is how many full turns
+      it makes per drawing. Add the arrows tip to tail and the last tip traces z(t).
+    </p>
+    <p>
+      With N sample points the series has exactly N terms, from frequency &minus;N/2 to
+      N/2 &minus; 1, and the discrete transform gives them directly:
+      c<sub>n</sub> = (1/N) &Sigma;<sub>k</sub> z<sub>k</sub> e<sup>&minus;2&pi;ink/N</sup>.
+      Sort the arrows by length and use the first K. A handful give a blurry, rounded
+      ghost of the picture. All N reproduce it exactly, because the transform is
+      invertible. That is the whole trick, and the page shows it with sliders.
+    </p>
+    <div class="panels">
+      <figure>
+        <img width="1600" height="1282" class="shot" src="einstein-few-arrows.png" loading="lazy"
+          alt="The finished drawing with only 10 arrows: a few large smooth loops that suggest the outline of a head and hair, with no facial detail." />
+        <figcaption><strong>10 arrows</strong>, 90.5% of the shape's energy. A blur with the right silhouette.</figcaption>
+      </figure>
+      <figure>
+        <img width="1600" height="1282" class="shot" src="einstein-some-arrows.png" loading="lazy"
+          alt="The finished drawing with 31 arrows: smooth looping curves that follow the hair, brow and nose but round off every corner." />
+        <figcaption><strong>31 arrows</strong>, 97.8%. The face is there, every corner rounded.</figcaption>
+      </figure>
+      <figure>
+        <img width="1600" height="1282" class="shot" src="einstein-all-arrows.png" loading="lazy"
+          alt="The finished drawing with all 2,048 arrows: a sharp single-line portrait reproducing the traced outlines exactly." />
+        <figcaption><strong>2,048 arrows</strong>, 100.00%. The traced line, exactly.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="stop stop--key">
+    <p class="eyebrow">&darr; the hard part</p>
+    <h2>Getting one line out of a photograph</h2>
+    <p>
+      The Fourier step is ten lines of code. The work is upstream: a photograph is not a
+      line. The page scales the picture to 360 px, stretches its contrast, and runs a
+      Canny edge detector written by hand (Gaussian blur, Sobel gradients, non-maximum
+      suppression, hysteresis). That gives edge pixels. Walking them greedily gives
+      strokes: for the Einstein example, <strong>103 separate strokes</strong>
+      after dropping anything under 14 px.
+    </p>
+    <p>
+      A Fourier series needs one closed loop, so the strokes have to become one path.
+      The obvious way is to hop: finish a stroke, jump straight to the nearest unfinished
+      one. The jumps become ink the series has to draw. For this portrait they add up to
+      <strong>2,206 px of straight lines across the face</strong>.
+    </p>
+    <p>
+      Fourier Pen does something a plotter would do instead. It finds the shortest set of
+      bridges that connects every stroke (Kruskal's minimum spanning tree over a spatial
+      grid, widening the search radius until everything is connected), then walks the
+      tree as an Euler tour: into each stroke, to its end, back to its start, back to
+      where it came in, crossing each bridge once in each direction. Every stroke is
+      drawn twice over the same ink, and the only new marks are the bridges:
+      <strong>102 of them, 562 px in total</strong>, a quarter of the
+      hop version's connectors. The pen never lifts, and the drawing closes on itself,
+      which is what makes it periodic.
+    </p>
+    <div class="panels">
+      <figure>
+        <img width="1600" height="1282" class="shot" src="einstein-hop.png" loading="lazy"
+          alt="Hop mode halfway through the Einstein drawing: the traced strokes with faint dashed straight lines cutting across the face between them." />
+        <figcaption><strong>Hop between strokes</strong>: 2,206 px of dashed jumps, drawn as ink.</figcaption>
+      </figure>
+      <figure>
+        <img width="1600" height="1282" class="shot" src="einstein-light-done.png" loading="lazy"
+          alt="The finished continuous-line Einstein drawing with no jumps: hair, brow, eyes, nose and moustache in one unbroken ink line." />
+        <figcaption><strong>One continuous line</strong>: 562 px of bridges, no jumps.</figcaption>
+      </figure>
+    </div>
+    <div class="pull">
+      <p>The iterative Euler tour that shipped is tested against the recursive version from
+         the prototype, point for point, on 300 random strokes. Same output, no recursion
+         limit.</p>
+      <span class="who">tests/path.test.js</span>
+    </div>
+  </section>
+
+  <section class="stop">
+    <p class="eyebrow">&darr; watching it</p>
+    <h2>Follow the pen</h2>
+    <p>
+      The large arrows set the overall position and barely move. The detail is in the
+      small ones at the end of the chain, which spin fast and sit inside circles a few
+      pixels wide. "Follow pen" zooms six times in on the tip and tracks it, which is the
+      view from the video that started all of this.
+    </p>
+    <figure>
+      <img width="1600" height="1282" class="shot" src="einstein-follow.png" loading="lazy"
+        alt="Follow-pen view zoomed in on the pen tip: dozens of small grey arrows and circles clustered at the end of the chain, with the thick ink line of the drawing passing through." />
+      <figcaption>Six times zoom on the pen tip. The thick line is the drawing; the grey chain is the last hundred arrows.</figcaption>
+    </figure>
+    <p style="margin-top:26px">
+      Beside the drawing the page shows the numbers it is using: the live equation with
+      the three largest terms, the ten largest arrows as a table (frequency, length,
+      starting angle), and how much of the shape's energy, &Sigma;|c<sub>n</sub>|&sup2;,
+      the current arrow count captures. Every one of those numbers is also in the CSV
+      export, all N rows.
+    </p>
+    <figure>
+      <img width="900" height="1953" class="shot shot--narrow" src="maths-group.png" loading="lazy"
+        alt="The maths panel: the coefficient formula, a live equation starting z(t) equals 0.329 e to the i(minus 1 times 2 pi t plus 1.70), a table of the ten largest arrows with turns, length bars and start angles, and a list of statistics ending with the transform time." />
+      <figcaption>The maths panel for the Einstein example. The length bars are the only use of the second accent colour on the page.</figcaption>
+    </figure>
+  </section>
+
+  <section class="stop">
+    <p class="eyebrow">&darr; keeping it</p>
+    <h2>Wallpapers, vectors and a video</h2>
+    <p>
+      Exports draw the curve for the number of arrows on screen, so what you save is what
+      you see: a 40-arrow face is a valid wallpaper. Size presets cover iPhone, iPhone Pro
+      Max, three MacBooks, Full HD, 4K and 5K, with custom sizes up to 8,192 px, your own
+      line and background colours, a transparent PNG option, and a live preview. SVG uses
+      the same options. Video records one full drawing with the arrows and circles, in
+      real time through the browser's own MediaRecorder, as WebM everywhere and MP4 where
+      the browser can encode it.
+    </p>
+    <figure>
+      <img width="900" height="2303" class="shot shot--narrow" src="export-group.png" loading="lazy"
+        alt="The export panel set to the iPhone preset, 1179 by 2556 pixels, with line width, line and background colour pickers, margin, a tall preview of the Einstein drawing, and buttons for PNG, SVG, CSV, WebM and MP4." />
+      <figcaption>The export group with the iPhone preset chosen. The preview updates as the options change.</figcaption>
+    </figure>
+  </section>
+
+  <section class="stop">
+    <p class="eyebrow">&darr; or type it</p>
+    <h2>"Albert Einstein sticking out his tongue"</h2>
+    <p>
+      The second input is a text box. The prompt goes to a small serverless function,
+      which wraps it in a fixed instruction ("a clean single-line drawing of &hellip;,
+      black ink on white, continuous outlines only") and asks Google's Gemini image model
+      for a picture. The returned image drops into the same pipeline as an upload. The
+      function holds the API key, checks the request came from this site, limits each
+      address to ten prompts in ten minutes, and keeps nothing.
+    </p>
+    <p>
+      That is also the one place the privacy claim has a caveat, so the page says it
+      under the drawing: uploaded pictures never leave your browser; a typed prompt is
+      sent to Google. The <a href="../privacy/">privacy page</a> spells out what the
+      function sees.
+    </p>
+    <figure>
+      <img width="900" height="1292" class="shot shot--narrow" src="source-group.png" loading="lazy"
+        alt="The source panel: a dashed drop zone, a text field with the placeholder Albert Einstein sticking out his tongue and a Draw it button, five example chips, and two previews showing the Einstein photograph and its detected outlines." />
+      <figcaption>Upload, describe, or pick an example. The right preview is the Canny edge map the strokes are traced from.</figcaption>
+    </figure>
+  </section>
+
+  <section class="stop">
+    <p class="eyebrow">&darr; on a phone</p>
+    <h2>Same tool, one column</h2>
+    <p>
+      The stage goes square and the panel stacks beneath it. Paste works from the
+      clipboard, and the drop zone is a file picker on touch screens.
+    </p>
+    <figure>
+      <img width="780" height="7742" class="shot shot--narrow" src="mobile.png" loading="lazy"
+        alt="Fourier Pen on a 390 pixel wide phone screen: the square drawing stage at the top with the Einstein line drawing in progress, then the source, outline, drawing, maths and export groups stacked in one column." />
+      <figcaption>390 px wide. No horizontal scroll.</figcaption>
+    </figure>
+  </section>
+
+  <section class="stop stop--warn">
+    <p class="eyebrow">&darr; what it gets wrong</p>
+    <h2>Edge detection is not drawing</h2>
+    <p>
+      Canny finds contrast, not meaning. Hair, fabric texture and a busy background all
+      produce edges, and a face with soft lighting produces few. The Einstein example
+      works because it is a studio portrait with a plain background, and even then it
+      opens with smoothing raised to 2.0 px and strokes under 14 px dropped. Snapshots
+      with cluttered backgrounds come out as scribble. The honest fix is a learned
+      line-art model, which is on the list and not in this version.
+    </p>
+    <p>
+      Greedy stroke tracing leaves orphan fragments at junctions; the length cut-off
+      hides most of them. In continuous mode every stroke is drawn twice, so it needs
+      about double the sample points for the same detail, which is why the default is
+      2,048 and not 1,024. Video export runs in real time because MediaRecorder cannot
+      run faster than the screen, so an 18-second drawing takes 18 seconds to save, and
+      it is capped at 1,920 px on the long side.
+    </p>
+    <p>
+      The text prompt depends on a paid API and a rate limit. If the budget runs out the
+      button says so and everything else keeps working.
+    </p>
+  </section>
+
+  <section class="stop stop--end">
+    <p class="eyebrow">Finish · what it is built on</p>
+    <h2>Plain modules, no build step</h2>
+    <dl class="specs">
+      <div class="spec"><dt>Edges</dt><dd>Hand-written Canny: Gaussian blur, Sobel, non-maximum suppression, hysteresis. Working size 360 px.</dd></div>
+      <div class="spec"><dt>One line</dt><dd>Kruskal minimum spanning tree over a spatial grid, then an Euler tour of the doubled tree. Hop mode is a nearest-neighbour tour.</dd></div>
+      <div class="spec"><dt>Transform</dt><dd>Direct O(N&sup2;) DFT with a cosine table: 8 ms at N = 2,048, 21 ms at 4,096, measured in Chromium.</dd></div>
+      <div class="spec"><dt>Animation</dt><dd>One <code>drawScene</code> function on a 2d canvas, shared by the stage and the video recorder.</dd></div>
+      <div class="spec"><dt>Exports</dt><dd>PNG and SVG at any size, CSV of all N coefficients, WebM or MP4 via MediaRecorder.</dd></div>
+      <div class="spec"><dt>Prompts</dt><dd>One Vercel function calling the Gemini Interactions API. Key on the server, nothing stored.</dd></div>
+      <div class="spec"><dt>Code</dt><dd>Plain HTML, CSS and ES modules. No framework, no bundler, no browser dependencies. 18 Node tests on the pure modules.</dd></div>
+      <div class="spec"><dt>Example photo</dt><dd>Albert Einstein, 1947, by Orren Jack Turner. Library of Congress, public domain.</dd></div>
+      <div class="spec"><dt>Inspiration</dt><dd>3Blue1Brown, <a href="https://www.youtube.com/watch?v=r6sGWTCMz2k">But what is a Fourier series?</a></dd></div>
+    </dl>
+  </section>
+
+</div>
+</div>
+
+<div class="wrap">
+  <section class="close">
+    <h2>Pick a picture and watch the arrows go</h2>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="../">Draw something</a>
+      <a class="textlink" href="https://github.com/lyhjeremy/fourier-pen">or read the code</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Fourier Pen &middot;
+      <a href="../">App</a> &middot;
+      <a href="https://github.com/lyhjeremy/fourier-pen">Source</a> &middot;
+      <a href="../privacy/">Privacy</a> &middot;
+      <a href="../terms/">Terms</a> &middot;
+      MIT &copy; 2026 Jeremy Lee
+    </p>
+    <p>Example photograph: Library of Congress, public domain. Screenshots are captures of the live page.</p>
+  </footer>
+</div>
+</body>
+</html>
