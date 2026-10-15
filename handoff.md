@@ -1,6 +1,6 @@
 # Handoff: Fourier Pen
 
-**Status:** shipped and live. Built 2026-10-14; last touched 2026-10-14.
+**Status:** shipped and live, prompts working. Built 2026-10-14; last touched 2026-10-14.
 **Repo:** https://github.com/lyhjeremy/fourier-pen · **Live:** https://fourier-pen.vercel.app/
 **Local folder:** `6. Data Projects/Project 36 Fourier Pen`
 
@@ -47,6 +47,7 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 - 2026-10-14: `designcheck.py` and `prose.py` pass on the tracked files (note: the checker scans only tracked files inside a git repo, so run it after `git add`, not before the first commit).
 - 2026-10-14: production at https://fourier-pen.vercel.app/: `/`, `/overview/`, `/privacy/`, `/terms/`, the sample photo, fonts and modules all 200; headless Chromium loads the Einstein example with zero third-party requests and all five fonts; `POST /api/generate` returns `{error:'unavailable', reason:'not_configured'}` with 503 until a key is set; `GET` returns 405.
 - 2026-10-14: portfolio row live at https://lyhjeremy.com/ and in the profile README; release tag v1.0.0.
+- 2026-10-14 (evening): text prompts live on Cloudflare Workers AI. Direct call: FLUX.1 schnell returned a 1024 px JPEG in 3.4 s. Through production: `POST /api/generate` with "a bicycle" returned a 252 KB data URL in 1.9 s; the page traced it and drew it.
 
 ## Environment notes
 
@@ -58,7 +59,7 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 
 ## Next steps
 
-1. Set `CF_ACCOUNT_ID` and `CF_API_TOKEN` in Vercel (production and preview), redeploy, and verify "a bicycle" draws end to end. The Gemini key was removed from Vercel on 2026-10-14 because its project has no image quota; the Gemini path stays in the code for a paid key. Then add the WAF rate-limit rule on `/api/generate`.
+1. Add the WAF rate-limit rule on `/api/generate` in the Vercel dashboard (Cloudflare's 10,000-neuron daily cap already bounds spending at zero, so this only protects the allowance). The Cloudflare token was pasted into a chat on 2026-10-14; rotate it in the Cloudflare profile's API Tokens page and update `CF_API_TOKEN` in Vercel. `CF_ACCOUNT_ID` and `CF_API_TOKEN` are set in Vercel for production and preview (account "Deep Tech Atlas"). The Gemini key was removed because its project has no image quota; the Gemini path stays in the code for a paid key.
 2. Freehand drawing input (skip edge detection, feed points straight to the resampler).
 3. SVG path input.
 4. WebCodecs video export if anyone asks for 4K or faster than real time.
