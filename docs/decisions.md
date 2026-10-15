@@ -118,6 +118,18 @@ A log of judgment calls, newest last. Each entry says what was decided, why, and
 **Decided:** Commits are authored by Jeremy Lee with no co-author or "generated with" line.
 **Why:** The portfolio's publishing checklist and the overview builder's README both say so, and the global git identity on this machine is already set that way. The user's own conventions take precedence over the default attribution.
 
+## 2026-10-14: Cloudflare Workers AI is the prompt provider; Gemini stays as an option
+
+**Decided:** `api/generate.js` has two providers. Cloudflare Workers AI (FLUX.1 schnell, `@cf/black-forest-labs/flux-1-schnell`) is the default whenever `CF_ACCOUNT_ID` and `CF_API_TOKEN` are set; Gemini is used when only `GEMINI_API_KEY` is set; `IMAGE_PROVIDER` forces one.
+**Why:** The owner's Gemini key is on Google's Free Tier, which has zero image quota on every image model (verified by direct calls on 2026-10-14), and the owner asked for a route that costs nothing. Cloudflare's free plan gives 10,000 neurons a day, FLUX.1 schnell costs about 4.8 neurons per 512 px tile, and past the allowance requests fail instead of billing.
+**Rules out:** Hugging Face Inference Providers (under $0.10 a month of free credit) and community services with changing terms.
+
+## 2026-10-14: the panel is tabbed
+
+**Decided:** The right-hand panel shows one group at a time behind five tabs (Picture, Outline, Drawing, Maths, Export), is sticky on desktop, and the export group's colour, line-width and margin controls sit behind a disclosure. The chosen tab is remembered per browser.
+**Why:** With five groups stacked, the panel ran to about four screens and the drawing scrolled out of view while adjusting anything. Tabs keep every control one click away with the stage always visible. The groups keep their ids, so nothing in the pipeline code changed.
+**Rules out:** An accordion (two groups open at once looked like the old scroll), and moving the picture controls above the stage.
+
 ## 2026-10-14: N = 4,096 stays
 
 **Decided:** The points dropdown offers 512 to 4,096.

@@ -3,7 +3,7 @@
 export const PROMPT_MESSAGES = {
   rate_limited: 'Too many prompts right now. Try again in a minute.',
   blocked: 'The image model would not draw that. Try a different prompt.',
-  unavailable: 'The drawing service is unavailable. You can still upload a picture.',
+  unavailable: 'The drawing service is unavailable right now. You can still upload a picture.',
   not_configured: 'Text prompts are not set up on this deployment. You can still upload a picture.',
 };
 

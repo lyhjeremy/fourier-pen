@@ -240,7 +240,7 @@ ui.swapColors.addEventListener('click', () => {
   .forEach((el) => el.addEventListener('input', () => { syncLabels(); updateExportPreview(); }));
 
 /* ---------- prompt ---------- */
-const PROMPT_HINT = 'An image model draws a line-art version, then the page traces it. Takes 5 to 15 seconds.';
+const PROMPT_HINT = 'An image model draws a line-art version, then the page traces it. Takes a few seconds.';
 let promptNote = ''; // a result or error message that outlives the next syncPrompt
 function syncPrompt() {
   const n = ui.prompt.value.trim().length;
@@ -372,6 +372,31 @@ ui.arrows.addEventListener('input', () => {
   clearTimeout(arrowTimer); arrowTimer = setTimeout(applyArrows, 40);
 });
 ui.speed.addEventListener('input', () => { app.lapSec = +ui.speed.value; syncLabels(); });
+
+/* ---------- panel tabs ---------- */
+const TAB_KEY = 'fourier-pen-tab';
+const tabs = $$('.tab');
+function showTab(id, focus) {
+  for (const t of tabs) {
+    const on = t.id === id;
+    t.setAttribute('aria-selected', String(on));
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    if (on && focus) t.focus();
+  }
+  try { localStorage.setItem(TAB_KEY, id); } catch (e) {}
+  if (id === 'tab-export') updateExportPreview();
+}
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => showTab(t.id));
+  t.addEventListener('keydown', (e) => {
+    const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? -i : e.key === 'End' ? tabs.length - 1 - i : 0;
+    if (d) { e.preventDefault(); showTab(tabs[(i + d + tabs.length) % tabs.length].id, true); }
+  });
+});
+let savedTab = null;
+try { savedTab = localStorage.getItem(TAB_KEY); } catch (e) {}
+showTab(tabs.some((t) => t.id === savedTab) ? savedTab : 'tab-source');
 
 /* ---------- start ---------- */
 initTheme();

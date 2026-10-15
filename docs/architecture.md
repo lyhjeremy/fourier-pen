@@ -10,13 +10,13 @@ A static site with one serverless function.
 browser                                     Vercel
 ┌──────────────────────────────┐            ┌─────────────────────┐
 │ index.html + styles.css      │  POST      │ api/generate.js     │   HTTPS   ┌──────────────┐
-│ js/main.js                   │ ─────────▶ │ validate, rate-limit│ ────────▶ │ Gemini image │
-│   edges → path → fourier     │ ◀───────── │ wrap prompt, call   │ ◀──────── │ API          │
-│   render, exports, ui        │  PNG b64   │ Gemini, return PNG  │           └──────────────┘
+│ js/main.js                   │ ─────────▶ │ validate, rate-limit│ ────────▶ │ Workers AI   │
+│   edges → path → fourier     │ ◀───────── │ wrap prompt, call   │ ◀──────── │ (or Gemini)  │
+│   render, exports, ui        │  JPEG b64  │ provider, return    │           └──────────────┘
 └──────────────────────────────┘            └─────────────────────┘
 ```
 
-Everything else, including every export, runs in the browser. The function exists only so the API key is never in the page.
+Everything else, including every export, runs in the browser. The function exists only so the provider credentials are never in the page. Provider: Cloudflare Workers AI (FLUX.1 schnell) by default, Google Gemini as an alternative, chosen by which env vars are set or by `IMAGE_PROVIDER`.
 
 ## 2. Files
 
@@ -130,7 +130,8 @@ Holds the app state:
    - Rejects non-POST, bodies over 2 KB, prompts outside 3 to 200 chars (400).
    - Rate limits (see 5).
    - Builds the model prompt: "A clean single-line drawing of {prompt}. Black ink on a plain white background. Continuous outlines only, no shading, no hatching, no text, no frame, centred, filling most of the image."
-   - Calls `POST https://generativelanguage.googleapis.com/v1beta/interactions` with header `x-goog-api-key`, body `{ model, input: [{type:'text', text}], response_format: {type:'image', mime_type:'image/jpeg', aspect_ratio:'1:1'} }` (the endpoint rejects `image/png`, checked 2026-10-14). Default model `gemini-nano-banana-2.1` (the one the official docs use on 2026-10-14); `GEMINI_IMAGE_MODEL` overrides it. `gemini-3.1-flash-image` and `gemini-3-pro-image` are the other current IDs.
+   - Cloudflare: `POST https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/@cf/black-forest-labs/flux-1-schnell` with a Bearer token and `{ prompt, steps: 4 }`; the REST API answers `{ result: { image: <base64 JPEG> } }`.
+   - Gemini: calls `POST https://generativelanguage.googleapis.com/v1beta/interactions` with header `x-goog-api-key`, body `{ model, input: [{type:'text', text}], response_format: {type:'image', mime_type:'image/jpeg', aspect_ratio:'1:1'} }` (the endpoint rejects `image/png`, checked 2026-10-14). Default model `gemini-nano-banana-2.1` (the one the official docs use on 2026-10-14); `GEMINI_IMAGE_MODEL` overrides it. `gemini-3.1-flash-image` and `gemini-3-pro-image` are the other current IDs.
    - Finds the first `{type:'image', data}` block anywhere in the response (`findImage`), returns `{ image: dataUrl }` with `Cache-Control: no-store`.
    - Maps failures to `{ error: 'rate_limited' | 'blocked' | 'unavailable' }` with matching status codes 429, 422, 502.
 3. The client decodes the data URL into an `Image`, sets it as `source`, and calls `run()`.
@@ -149,7 +150,10 @@ The endpoint is public and each call costs money. Three layers, cheapest first:
 
 | Name | Where | Purpose |
 |---|---|---|
-| `GEMINI_API_KEY` | Vercel project settings, `.env.local` | Gemini API key |
+| `IMAGE_PROVIDER` | optional | `cloudflare` or `gemini`; otherwise inferred from which credentials exist |
+| `CF_ACCOUNT_ID`, `CF_API_TOKEN` | Vercel project settings, `.env.local` | Cloudflare Workers AI (free plan: 10,000 neurons a day) |
+| `CF_IMAGE_MODEL` | optional | overrides `@cf/black-forest-labs/flux-1-schnell` |
+| `GEMINI_API_KEY` | optional | Gemini API key (paid tier only; free tier has no image quota) |
 | `GEMINI_IMAGE_MODEL` | optional | overrides the default model ID |
 | `PROMPTS_ENABLED` | optional, default `true` | kill switch |
 

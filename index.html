@@ -47,12 +47,19 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         <div class="readout" id="readout" aria-live="off">Preparing</div>
         <div class="progress" id="progress" hidden><i></i></div>
       </div>
-      <p class="stage-note">Pictures you upload never leave your browser. A text prompt is sent to Google's image model through this site's server. <a href="privacy/">Privacy</a>.</p>
+      <p class="stage-note">Pictures you upload never leave your browser. A text prompt is sent to an image model (Cloudflare Workers AI) through this site's server. <a href="privacy/">Privacy</a>.</p>
     </section>
 
     <aside class="panel">
-      <div class="group">
-        <h2>Source</h2>
+      <div class="tabs" role="tablist" aria-label="Settings">
+        <button class="tab" type="button" role="tab" id="tab-source" aria-controls="panel-source" aria-selected="true">Picture</button>
+        <button class="tab" type="button" role="tab" id="tab-outline" aria-controls="panel-outline" aria-selected="false" tabindex="-1">Outline</button>
+        <button class="tab" type="button" role="tab" id="tab-drawing" aria-controls="panel-drawing" aria-selected="false" tabindex="-1">Drawing</button>
+        <button class="tab" type="button" role="tab" id="tab-maths" aria-controls="panel-maths" aria-selected="false" tabindex="-1">Maths</button>
+        <button class="tab" type="button" role="tab" id="tab-export" aria-controls="panel-export" aria-selected="false" tabindex="-1">Export</button>
+      </div>
+      <div class="group" id="panel-source" role="tabpanel" aria-labelledby="tab-source">
+        <h2>Picture</h2>
         <label class="drop" id="drop">
           <input class="sr" type="file" id="file" accept="image/*">
           <strong>Choose a picture</strong>
@@ -64,7 +71,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
             <input type="text" id="prompt" maxlength="200" placeholder="Albert Einstein sticking out his tongue" autocomplete="off">
             <button class="btn btn-primary" type="button" id="promptGo" disabled>Draw it</button>
           </div>
-          <span class="hint" id="promptHint">An image model draws a line-art version, then the page traces it. Takes 5 to 15 seconds.</span>
+          <span class="hint" id="promptHint">An image model draws a line-art version, then the page traces it. Takes a few seconds.</span>
         </div>
         <div class="samples">
           <span>Examples:</span>
@@ -80,7 +87,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         </div>
       </div>
 
-      <div class="group">
+      <div class="group" id="panel-outline" role="tabpanel" aria-labelledby="tab-outline" hidden>
         <h2>Outline</h2>
         <div class="field">
           <div class="field-head"><span id="modeLabel" class="lbl">Pen path</span></div>
@@ -114,7 +121,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         </div>
       </div>
 
-      <div class="group">
+      <div class="group" id="panel-drawing" role="tabpanel" aria-labelledby="tab-drawing" hidden>
         <h2>Drawing</h2>
         <div class="field">
           <div class="field-head"><label for="arrows">Arrows</label><output id="arrowsOut" for="arrows"></output></div>
@@ -131,7 +138,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         </div>
       </div>
 
-      <div class="group">
+      <div class="group" id="panel-maths" role="tabpanel" aria-labelledby="tab-maths" hidden>
         <h2>The maths</h2>
         <div class="formula" aria-label="c sub n equals one over N times the sum over k of z sub k times e to the minus 2 pi i n k over N">
           c<sub>n</sub> = <span class="frac"><span>1</span><span>N</span></span> &Sigma;<sub>k</sub> z<sub>k</sub> e<sup>&minus;2&pi;ink/N</sup>
@@ -156,7 +163,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         </dl>
       </div>
 
-      <div class="group">
+      <div class="group" id="panel-export" role="tabpanel" aria-labelledby="tab-export" hidden>
         <h2>Export</h2>
         <div class="field">
           <div class="field-head"><label for="preset">Size</label><output id="sizeOut" for="preset"></output></div>
@@ -166,6 +173,9 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
           <div class="field"><div class="field-head"><label for="expW">Width</label></div><input type="number" id="expW" min="256" max="8192" step="1" value="2048"></div>
           <div class="field"><div class="field-head"><label for="expH">Height</label></div><input type="number" id="expH" min="256" max="8192" step="1" value="2048"></div>
         </div>
+        <details class="more">
+          <summary>Colours, line width and margin</summary>
+          <div class="more-body">
         <div class="field">
           <div class="field-head"><label for="lineWidth">Line width</label><output id="lineWidthOut" for="lineWidth"></output></div>
           <input type="range" id="lineWidth" min="5" max="60" value="15">
@@ -183,6 +193,8 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
           <button class="btn" type="button" id="swapColors">Swap colours</button>
           <div class="field"><div class="field-head"><label for="margin">Margin</label><output id="marginOut" for="margin"></output></div><input type="range" id="margin" min="0" max="25" value="8"></div>
         </div>
+          </div>
+        </details>
         <figure class="export-preview">
           <canvas id="expPrev" width="240" height="240"></canvas>
           <figcaption id="expSummary"></figcaption>

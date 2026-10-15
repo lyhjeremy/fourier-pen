@@ -1,11 +1,23 @@
-// Vercel function: a short text prompt in, a line-art PNG out, through Google's Gemini
-// image model. The API key never reaches the browser. Nothing about the prompt is stored.
+// Vercel function: a short text prompt in, a line-art picture out. Two providers:
+//   cloudflare (default when CF_ACCOUNT_ID and CF_API_TOKEN are set): Workers AI, FLUX.1 schnell,
+//     free allowance of 10,000 neurons a day on the free plan, fails rather than bills past it.
+//   gemini (GEMINI_API_KEY): Google's Interactions endpoint, paid tier only.
+// Keys never reach the browser. Nothing about the prompt is stored.
 
-const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-nano-banana-2.1';
-const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+const CF_MODEL = process.env.CF_IMAGE_MODEL || '@cf/black-forest-labs/flux-1-schnell';
+const GEMINI_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-nano-banana-2.1';
+const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const WINDOW_MS = 10 * 60 * 1000;
 const LIMIT = 10;
 const hits = new Map(); // per warm instance; the Vercel firewall rule is the real limit
+
+function provider() {
+  const p = (process.env.IMAGE_PROVIDER || '').toLowerCase();
+  if (p === 'cloudflare' || p === 'gemini') return p;
+  if (process.env.CF_ACCOUNT_ID && process.env.CF_API_TOKEN) return 'cloudflare';
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  return null;
+}
 
 function json(body, status, extra) {
   return new Response(JSON.stringify(body), {
@@ -38,8 +50,8 @@ export async function GET() {
 
 export async function POST(request) {
   if (process.env.PROMPTS_ENABLED === 'false') return json({ error: 'unavailable', reason: 'disabled' }, 503);
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return json({ error: 'unavailable', reason: 'not_configured' }, 503);
+  const which = provider();
+  if (!which) return json({ error: 'unavailable', reason: 'not_configured' }, 503);
 
   const origin = request.headers.get('origin');
   const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
@@ -69,46 +81,83 @@ export async function POST(request) {
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 50000);
-  let res;
+  let out;
   try {
-    res = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'x-goog-api-key': key, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL,
-        input: [{ type: 'text', text: instruction }],
-        // The Interactions endpoint accepts only image/jpeg here (checked 2026-10-14).
-        response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '1:1' },
-      }),
-      signal: ctrl.signal,
-    });
+    out = which === 'cloudflare' ? await viaCloudflare(instruction, ctrl.signal) : await viaGemini(instruction, ctrl.signal);
   } catch (e) {
     clearTimeout(timer);
-    console.error('gemini fetch failed', e && e.name);
+    console.error(which, 'fetch failed', e && e.name);
     return json({ error: 'unavailable' }, 502);
   }
   clearTimeout(timer);
+  if (out.error) return json({ error: out.error, ...(out.reason ? { reason: out.reason } : {}) }, out.status, out.headers);
+  const img = out.image;
+  return json({ image: `data:${img.mime};base64,${img.data}` }, 200);
+}
 
+// Cloudflare Workers AI. The REST API wraps the model output as { result: { image }, success }.
+async function viaCloudflare(instruction, signal) {
+  const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/run/${CF_MODEL}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${process.env.CF_API_TOKEN}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ prompt: instruction, steps: 4 }),
+    signal,
+  });
+  if (res.status === 429) return { error: 'rate_limited', status: 429, headers: { 'retry-after': '60' } };
+  const ct = res.headers.get('content-type') || '';
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    console.error('cloudflare status', res.status, txt.slice(0, 300));
+    if (/quota|neuron|limit/i.test(txt)) return { error: 'unavailable', reason: 'quota', status: 503 };
+    if (/nsfw|safety|prohibited|flagged/i.test(txt)) return { error: 'blocked', status: 422 };
+    return { error: 'unavailable', status: 502 };
+  }
+  if (ct.startsWith('image/')) {
+    const buf = Buffer.from(await res.arrayBuffer());
+    return { image: { mime: ct.split(';')[0], data: buf.toString('base64') } };
+  }
+  const data = await res.json().catch(() => null);
+  const b64 = data && ((data.result && data.result.image) || data.image);
+  if (typeof b64 !== 'string' || !b64) {
+    console.error('cloudflare returned no image', JSON.stringify(data || {}).slice(0, 300));
+    return { error: 'blocked', status: 422 };
+  }
+  return { image: { mime: 'image/jpeg', data: b64 } };
+}
+
+// Google Gemini, Interactions endpoint. Only image/jpeg is accepted for the response (checked 2026-10-14).
+async function viaGemini(instruction, signal) {
+  const res = await fetch(GEMINI_ENDPOINT, {
+    method: 'POST',
+    headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: GEMINI_MODEL,
+      input: [{ type: 'text', text: instruction }],
+      response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '1:1' },
+    }),
+    signal,
+  });
   if (res.status === 429) {
     // Google's own 429 covers two cases: a burst (retry later) and a tier with no image quota at all.
     const txt = await res.text().catch(() => '');
     if (/limit:\s*0\b|free tier|upgrade your tier/i.test(txt)) {
       console.error('gemini quota: the key has no image-generation quota', txt.slice(0, 200));
-      return json({ error: 'unavailable', reason: 'quota' }, 503);
+      return { error: 'unavailable', reason: 'quota', status: 503 };
     }
-    return json({ error: 'rate_limited' }, 429, { 'retry-after': '60' });
+    return { error: 'rate_limited', status: 429, headers: { 'retry-after': '60' } };
   }
   if (!res.ok) {
     const txt = await res.text().catch(() => '');
     console.error('gemini status', res.status, txt.slice(0, 300));
     const blocked = /safety|blocked|prohibited|harm/i.test(txt);
-    return json({ error: blocked ? 'blocked' : 'unavailable' }, blocked ? 422 : 502);
+    return { error: blocked ? 'blocked' : 'unavailable', status: blocked ? 422 : 502 };
   }
   const data = await res.json().catch(() => null);
   const img = findImage(data);
   if (!img) {
     console.error('gemini returned no image', JSON.stringify(data || {}).slice(0, 300));
-    return json({ error: 'blocked' }, 422);
+    return { error: 'blocked', status: 422 };
   }
-  return json({ image: `data:${img.mime};base64,${img.data}` }, 200);
+  return { image: img };
 }

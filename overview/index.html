@@ -386,9 +386,9 @@
       export, all N rows.
     </p>
     <figure>
-      <img width="900" height="1953" class="shot shot--narrow" src="maths-group.png" loading="lazy"
-        alt="The maths panel: the coefficient formula, a live equation starting z(t) equals 0.329 e to the i(minus 1 times 2 pi t plus 1.70), a table of the ten largest arrows with turns, length bars and start angles, and a list of statistics ending with the transform time." />
-      <figcaption>The maths panel for the Einstein example. The length bars are the only use of the second accent colour on the page.</figcaption>
+      <img width="900" height="2043" class="shot shot--narrow" src="maths-group.png" loading="lazy"
+        alt="The Maths tab: the coefficient formula, a live equation starting z(t) equals 0.329 e to the i(minus 1 times 2 pi t plus 1.70), a table of the ten largest arrows with turns, length bars and start angles, and a list of statistics ending with the transform time." />
+      <figcaption>The Maths tab for the Einstein example. The length bars are the only use of the second accent colour on the page.</figcaption>
     </figure>
   </section>
 
@@ -405,9 +405,9 @@
       the browser can encode it.
     </p>
     <figure>
-      <img width="900" height="2303" class="shot shot--narrow" src="export-group.png" loading="lazy"
-        alt="The export panel set to the iPhone preset, 1179 by 2556 pixels, with line width, line and background colour pickers, margin, a tall preview of the Einstein drawing, and buttons for PNG, SVG, CSV, WebM and MP4." />
-      <figcaption>The export group with the iPhone preset chosen. The preview updates as the options change.</figcaption>
+      <img width="900" height="1915" class="shot shot--narrow" src="export-group.png" loading="lazy"
+        alt="The Export tab of the panel: a size preset select reading Square 2,048 by 2,048, a closed disclosure for colours, line width and margin, a square preview of the Einstein drawing with a mono caption, and buttons for PNG, SVG, CSV, WebM and MP4." />
+      <figcaption>The Export tab. The colour, line-width and margin controls sit behind the disclosure; the preview updates as any of them change.</figcaption>
     </figure>
   </section>
 
@@ -417,21 +417,22 @@
     <p>
       The second input is a text box. The prompt goes to a small serverless function,
       which wraps it in a fixed instruction ("a clean single-line drawing of &hellip;,
-      black ink on white, continuous outlines only") and asks Google's Gemini image model
-      for a picture. The returned image drops into the same pipeline as an upload. The
+      black ink on white, continuous outlines only") and asks an image model for a
+      picture: FLUX.1 schnell on Cloudflare Workers AI, whose free plan allows about
+      2,000 such images a day and fails rather than bills past that. The returned image drops into the same pipeline as an upload. The
       function holds the API key, checks the request came from this site, limits each
       address to ten prompts in ten minutes, and keeps nothing.
     </p>
     <p>
       That is also the one place the privacy claim has a caveat, so the page says it
       under the drawing: uploaded pictures never leave your browser; a typed prompt is
-      sent to Google. The <a href="../privacy/">privacy page</a> spells out what the
+      sent to Cloudflare. The <a href="../privacy/">privacy page</a> spells out what the
       function sees.
     </p>
     <figure>
-      <img width="900" height="1292" class="shot shot--narrow" src="source-group.png" loading="lazy"
-        alt="The source panel: a dashed drop zone, a text field with the placeholder Albert Einstein sticking out his tongue and a Draw it button, five example chips, and two previews showing the Einstein photograph and its detected outlines." />
-      <figcaption>Upload, describe, or pick an example. The right preview is the Canny edge map the strokes are traced from.</figcaption>
+      <img width="900" height="1385" class="shot shot--narrow" src="source-group.png" loading="lazy"
+        alt="The Picture tab of the panel under a five-tab strip: a dashed drop zone, a text field with the placeholder Albert Einstein sticking out his tongue and a Draw it button, five example chips, and two previews showing the Einstein photograph and its detected outlines." />
+      <figcaption>The Picture tab: upload, describe, or pick an example. The right preview is the Canny edge map the strokes are traced from. The other four tabs hold the outline, drawing, maths and export controls.</figcaption>
     </figure>
   </section>
 
@@ -439,13 +440,14 @@
     <p class="eyebrow">&darr; on a phone</p>
     <h2>Same tool, one column</h2>
     <p>
-      The stage goes square and the panel stacks beneath it. Paste works from the
-      clipboard, and the drop zone is a file picker on touch screens.
+      The stage goes square and the tabbed panel sits beneath it, so the drawing stays
+      one flick away from any control. Paste works from the clipboard, and the drop zone
+      is a file picker on touch screens.
     </p>
     <figure>
-      <img width="780" height="7742" class="shot shot--narrow" src="mobile.png" loading="lazy"
-        alt="Fourier Pen on a 390 pixel wide phone screen: the square drawing stage at the top with the Einstein line drawing in progress, then the source, outline, drawing, maths and export groups stacked in one column." />
-      <figcaption>390 px wide. No horizontal scroll.</figcaption>
+      <img width="780" height="2948" class="shot shot--narrow" src="mobile.png" loading="lazy"
+        alt="Fourier Pen on a 390 pixel wide phone screen: the square drawing stage at the top with the Einstein line drawing in progress, then the tabbed panel below it showing the Picture tab." />
+      <figcaption>390 px wide. The stage goes square and the tabbed panel sits below it. No horizontal scroll.</figcaption>
     </figure>
   </section>
 
@@ -469,8 +471,8 @@
       it is capped at 1,920 px on the long side.
     </p>
     <p>
-      The text prompt depends on a paid API and a rate limit. If the budget runs out the
-      button says so and everything else keeps working.
+      The text prompt depends on a third-party model and a daily allowance. If the allowance
+      runs out the button says so and everything else keeps working.
     </p>
   </section>
 
@@ -483,7 +485,7 @@
       <div class="spec"><dt>Transform</dt><dd>Direct O(N&sup2;) DFT with a cosine table: 8 ms at N = 2,048, 21 ms at 4,096, measured in Chromium.</dd></div>
       <div class="spec"><dt>Animation</dt><dd>One <code>drawScene</code> function on a 2d canvas, shared by the stage and the video recorder.</dd></div>
       <div class="spec"><dt>Exports</dt><dd>PNG and SVG at any size, CSV of all N coefficients, WebM or MP4 via MediaRecorder.</dd></div>
-      <div class="spec"><dt>Prompts</dt><dd>One Vercel function calling the Gemini Interactions API. Key on the server, nothing stored.</dd></div>
+      <div class="spec"><dt>Prompts</dt><dd>One Vercel function calling Cloudflare Workers AI (FLUX.1 schnell), with Gemini as an alternative. Keys on the server, nothing stored.</dd></div>
       <div class="spec"><dt>Code</dt><dd>Plain HTML, CSS and ES modules. No framework, no bundler, no browser dependencies. 18 Node tests on the pure modules.</dd></div>
       <div class="spec"><dt>Example photo</dt><dd>Albert Einstein, 1947, by Orren Jack Turner. Library of Congress, public domain.</dd></div>
       <div class="spec"><dt>Inspiration</dt><dd>3Blue1Brown, <a href="https://www.youtube.com/watch?v=r6sGWTCMz2k">But what is a Fourier series?</a></dd></div>

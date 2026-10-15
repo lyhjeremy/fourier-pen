@@ -70,10 +70,22 @@ h1{font-family:var(--font-head);font-weight:600;font-size:clamp(2rem,4vw,3.05rem
 .stage-note{margin:0;font-size:12.5px;color:var(--ink-2)}
 
 /* Panel */
-.panel{background:var(--panel);border:1px solid var(--rule);display:grid}
-.group{padding:var(--s2);display:grid;gap:12px;border-top:1px solid var(--rule)}
-.group:first-child{border-top:0}
-.group h2{margin:0;font:600 .8rem/1 var(--font-body);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
+.panel{background:var(--panel);border:1px solid var(--rule);display:grid;align-content:start}
+@media (min-width:881px){.panel{position:sticky;top:var(--s2);max-height:calc(100vh - var(--s3));overflow-y:auto}}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--rule);background:var(--paper)}
+.tab{font:600 12.5px/1 var(--font-body);color:var(--ink-2);background:var(--paper);border:0;border-right:1px solid var(--rule);padding:12px 4px;cursor:pointer;text-align:center}
+.tab:last-child{border-right:0}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--panel);color:var(--ink);border-bottom:2px solid var(--ink);margin-bottom:-1px}
+.tab:focus-visible{outline-offset:-2px}
+.more{border:1px solid var(--rule);background:var(--paper)}
+.more summary{cursor:pointer;padding:8px 10px;font-size:13px;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+.more summary::after{content:"Show";font-weight:400;color:var(--ink-2);font-size:12.5px}
+.more[open] summary::after{content:"Hide"}
+.more summary::-webkit-details-marker{display:none}
+.more-body{display:grid;gap:12px;padding:0 10px 12px;border-top:1px solid var(--rule);padding-top:12px}
+.group{padding:var(--s2);display:grid;gap:12px}
+.group h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap} /* the tab is the visible label */
 .drop{display:grid;gap:2px;padding:14px;border:1px dashed var(--edge);text-align:center;cursor:pointer;background:var(--paper)}
 .drop strong{font-weight:600}
 .drop span{color:var(--ink-2);font-size:12.5px}

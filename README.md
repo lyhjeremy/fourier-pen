@@ -15,7 +15,7 @@ Inspired by the epicycle drawings in 3Blue1Brown's "But what is a Fourier series
 
 ## What it does
 - **Input**: upload, drop or paste a picture; pick one of five built-in examples; or type a
-  short prompt and let Google's image model draw a line-art version first.
+  short prompt and let an image model draw a line-art version first.
 - **One continuous line**: strokes are joined by the shortest possible bridges (a minimum
   spanning tree) and the pen retraces its own ink instead of lifting, so the whole drawing
   is a single closed curve. A "hop" mode with straight pen jumps is there for comparison.
@@ -27,7 +27,7 @@ Inspired by the epicycle drawings in 3Blue1Brown's "But what is a Fourier series
   MP4 video of one full drawing.
 
 Uploaded pictures never leave your browser. A text prompt is the one thing sent to a
-server (this site's own function, which forwards it to Google). See the
+server (this site's own function, which forwards it to Cloudflare Workers AI). See the
 [privacy page](https://fourier-pen.vercel.app/privacy/).
 
 ## How it works
@@ -56,10 +56,13 @@ No build step. Serve the folder with any static server:
 npx serve .
 ```
 
-The text prompt feature needs the serverless function and a Gemini API key:
+The text prompt feature needs the serverless function and an image provider. The default
+is Cloudflare Workers AI, whose free plan allows 10,000 neurons a day (hundreds of FLUX.1
+schnell images) and fails rather than bills past that. Google Gemini is supported too but
+has no free image quota.
 
 ```
-cp .env.example .env.local     # put your key in GEMINI_API_KEY
+cp .env.example .env.local     # put CF_ACCOUNT_ID and CF_API_TOKEN in it
 vercel dev
 ```
 
@@ -70,9 +73,9 @@ node --test tests/
 ```
 
 ## Deploy
-The site is a Vercel project. Pushing to `main` deploys. Set `GEMINI_API_KEY` in the
-project's environment variables; without it the prompt button says prompts are not set
-up and everything else keeps working. Add a WAF rate-limit rule on `/api/generate` in the
+The site is a Vercel project. Pushing to `main` deploys. Set `CF_ACCOUNT_ID` and
+`CF_API_TOKEN` (or `GEMINI_API_KEY`) in the project's environment variables; without
+them the prompt button says prompts are not set up and everything else keeps working. Add a WAF rate-limit rule on `/api/generate` in the
 Vercel dashboard (the function also keeps a per-instance limit of 10 prompts per 10
 minutes per IP, and `PROMPTS_ENABLED=false` switches the feature off without a deploy).
 

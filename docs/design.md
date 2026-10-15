@@ -33,7 +33,7 @@ Two columns from 881 px: the stage takes the remaining width, the panel is 360 p
 
 A "Read the full writeup" bar sits above the page, as on the sibling tools.
 
-Panel groups, top to bottom: Source, Outline, Drawing, The maths, Export. Export is the largest: a size preset select, custom width and height (shown only for Custom), line width, two colour pickers on one row, transparent and jumps toggles, swap colours beside margin, a 240 px live preview with a mono caption, then the five save buttons.
+The panel is sticky on desktop (top 16 px, scrolls inside itself if a tab is taller than the viewport) and shows one group at a time behind a five-tab strip: Picture, Outline, Drawing, Maths, Export. The strip sits on `--paper`; the selected tab is on `--panel` with a 2 px ink underline, no fill, no transition. Arrow keys move between tabs. Export shows the size preset, custom width and height (Custom only), a 240 px live preview with a mono caption and the five save buttons; line width, colours, transparent background, jumps, swap and margin sit behind a bordered disclosure labelled "Colours, line width and margin".
 
 ## 5. Components
 
