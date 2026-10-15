@@ -172,7 +172,7 @@ function updateExportPreview() {
     renderPNG(app.curve, app.model.jump, { ...o, width: pw, height: ph, lineWidth: Math.max(o.lineWidth, 2.5) }, c);
     const vw = Math.round(o.width * Math.min(1, VIDEO_MAX_SIDE / Math.max(o.width, o.height)));
     const vh = Math.round(o.height * Math.min(1, VIDEO_MAX_SIDE / Math.max(o.width, o.height)));
-    ui.expSummary.textContent = `${fmt(o.width)} × ${fmt(o.height)} px, line ${((Math.min(o.width, o.height) * o.lineWidth) / 1000).toFixed(1)} px, ${o.bgColor === 'transparent' ? 'transparent' : o.bgColor} on ${o.lineColor}. Video ${fmt(vw)} × ${fmt(vh)}.`;
+    ui.expSummary.textContent = `${fmt(o.width)} × ${fmt(o.height)} px · line ${((Math.min(o.width, o.height) * o.lineWidth) / 1000).toFixed(1)} px${o.bgColor === 'transparent' ? ' · transparent' : ''} · video ${fmt(vw)} × ${fmt(vh)}`;
   }, 60);
 }
 function syncSave() {
