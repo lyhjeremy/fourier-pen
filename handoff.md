@@ -58,7 +58,7 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 
 ## Next steps
 
-1. Enable billing on the Gemini key's project (Free Tier has no image quota), verify "a bicycle" draws end to end, then add the WAF rate-limit rule on `/api/generate` and a budget alert.
+1. Set `CF_ACCOUNT_ID` and `CF_API_TOKEN` in Vercel (production and preview), redeploy, and verify "a bicycle" draws end to end. The Gemini key was removed from Vercel on 2026-10-14 because its project has no image quota; the Gemini path stays in the code for a paid key. Then add the WAF rate-limit rule on `/api/generate`.
 2. Freehand drawing input (skip edge detection, feed points straight to the resampler).
 3. SVG path input.
 4. WebCodecs video export if anyone asks for 4K or faster than real time.
