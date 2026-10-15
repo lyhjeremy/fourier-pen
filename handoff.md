@@ -1,6 +1,6 @@
 # Handoff: Fourier Pen
 
-**Status:** shipped and live, prompts working. Built 2026-10-14; last touched 2026-10-14.
+**Status:** closed 2026-10-15. Shipped and live, prompts working on Cloudflare Workers AI, one-screen tabbed UI, listed on lyhjeremy.com (Apps and tools, after the portfolio's one-accent restyle). Built 2026-10-14; last touched 2026-10-15.
 **Repo:** https://github.com/lyhjeremy/fourier-pen · **Live:** https://fourier-pen.vercel.app/
 **Local folder:** `6. Data Projects/Project 36 Fourier Pen`
 
