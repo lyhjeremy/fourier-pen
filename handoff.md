@@ -56,6 +56,7 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 - Rate limiting: the Vercel WAF rate-limit rule (Hobby allows up to 3 custom rules) must be added in the dashboard; it is not in the repo. The in-function limiter is per warm instance only.
 - `ffprobe` on this machine is broken (missing libx265), so the WebM was verified by size and by the browser's own recorder state, not by decoding.
 - Google Drive folder: large screenshot runs should go to the scratchpad, not the project folder, or Drive syncs them.
+- Do not poll production in a tight loop. On 2026-10-14 a 10-second curl loop plus several headless-Chromium runs tripped Vercel's bot protection and the whole site served a "Vercel Security Checkpoint" 403 to every client for a while. If that happens again: Vercel dashboard, project fourier-pen, Firewall tab, check that Attack Challenge Mode is off, then wait. Check deploys with `vercel ls` instead of curl loops, and keep any wait loop at 60 s or slower.
 
 ## Layout check
 
