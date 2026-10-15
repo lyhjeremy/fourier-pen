@@ -22,13 +22,9 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
 
 <div class="app" id="main">
   <header class="top">
-    <div>
-      <h1>Fourier Pen</h1>
-      <p class="tagline">Any picture, one line, a chain of spinning arrows. The page finds the outlines in a picture, threads them into a single continuous line, and redraws that line with rotating arrows stacked tip to tail. Each arrow is one term of a Fourier series.</p>
-    </div>
-    <div class="top-tools">
-      <button class="btn btn-small" type="button" id="theme" aria-pressed="false">Theme: system</button>
-    </div>
+    <h1>Fourier Pen</h1>
+    <p class="tagline">Any picture, one line, a chain of spinning arrows. The page finds the outlines in a picture, threads them into one continuous line, and redraws it with rotating arrows stacked tip to tail. Each arrow is one term of a Fourier series.</p>
+    <button class="btn btn-small" type="button" id="theme" aria-pressed="false">Theme: system</button>
   </header>
 
   <div class="layout">
@@ -39,7 +35,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         <div class="stage-bar">
           <span></span>
           <div class="btn-row">
-            <button class="btn btn-small" id="play" type="button" aria-pressed="false">Pause</button>
+            <button class="btn btn-small" id="play" type="button">Pause</button>
             <button class="btn btn-small" id="restart" type="button">Restart</button>
             <button class="btn btn-small" id="follow" type="button" aria-pressed="false">Follow pen</button>
           </div>
@@ -47,7 +43,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         <div class="readout" id="readout" aria-live="off">Preparing</div>
         <div class="progress" id="progress" hidden><i></i></div>
       </div>
-      <p class="stage-note">Pictures you upload never leave your browser. A text prompt is sent to an image model (Cloudflare Workers AI) through this site's server. <a href="privacy/">Privacy</a>.</p>
+      <p class="stage-note">Uploaded pictures stay in your browser. A typed prompt goes to Cloudflare Workers AI through this site's server. <a href="privacy/">Privacy</a>.</p>
     </section>
 
     <aside class="panel">
@@ -73,8 +69,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
           </div>
           <span class="hint" id="promptHint">An image model draws a line-art version, then the page traces it. Takes a few seconds.</span>
         </div>
-        <div class="samples">
-          <span>Examples:</span>
+        <div class="samples" aria-label="Examples">
           <button class="chip" type="button" data-sample="word" aria-pressed="true">Fourier</button>
           <button class="chip" type="button" data-sample="pi" aria-pressed="false">&pi;</button>
           <button class="chip" type="button" data-sample="heart" aria-pressed="false">Heart</button>
@@ -143,7 +138,7 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
         <div class="formula" aria-label="c sub n equals one over N times the sum over k of z sub k times e to the minus 2 pi i n k over N">
           c<sub>n</sub> = <span class="frac"><span>1</span><span>N</span></span> &Sigma;<sub>k</sub> z<sub>k</sub> e<sup>&minus;2&pi;ink/N</sup>
         </div>
-        <p class="small">Each point on the line is a complex number z<sub>k</sub>. Each coefficient c<sub>n</sub> is one arrow: its size is |c<sub>n</sub>|, and it turns n times per drawing. The biggest arrows are drawn first.</p>
+        <p class="small">Each point z<sub>k</sub> is a complex number. Each c<sub>n</sub> is one arrow: |c<sub>n</sub>| its length, arg c<sub>n</sub> its start angle, n its turns per drawing.</p>
         <div class="eq" id="eq">z(t) &asymp; &hellip;</div>
         <div class="tbl-wrap">
           <table class="coef">
@@ -151,15 +146,15 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
             <tbody id="coefBody"></tbody>
           </table>
         </div>
-        <p class="small">The 10 largest arrows for the current picture, with t running from 0 to 1 over one drawing. Lengths are in picture units, where the drawing spans &minus;1 to 1. Angles are in radians.</p>
-        <dl class="stats">
+        <p class="small">The 8 largest arrows. t runs 0 to 1 per drawing; lengths in picture units (span &minus;1 to 1); angles in radians.</p>
+        <dl class="stats stats-2">
           <dt>Edge pixels</dt><dd id="stEdges">&ndash;</dd>
-          <dt>Strokes threaded</dt><dd id="stStrokes">&ndash;</dd>
-          <dt id="stLinkLabel">Bridges added</dt><dd id="stLinks">&ndash;</dd>
           <dt>Points</dt><dd id="stPoints">&ndash;</dd>
+          <dt>Strokes</dt><dd id="stStrokes">&ndash;</dd>
           <dt>Arrows in use</dt><dd id="stArrows">&ndash;</dd>
-          <dt>Shape energy captured</dt><dd id="stEnergy">&ndash;</dd>
-          <dt>Transform time</dt><dd id="stTime">&ndash;</dd>
+          <dt id="stLinkLabel">Bridges</dt><dd id="stLinks">&ndash;</dd>
+          <dt>Energy kept</dt><dd id="stEnergy">&ndash;</dd>
+          <dt>Transform</dt><dd id="stTime">&ndash;</dd>
         </dl>
       </div>
 
@@ -199,12 +194,12 @@ try { var t = localStorage.getItem('fourier-pen-theme'); if (t === 'light' || t 
           <canvas id="expPrev" width="240" height="240"></canvas>
           <figcaption id="expSummary"></figcaption>
         </figure>
-        <div class="save-row">
-          <button class="btn save" type="button" id="savePng" disabled>Picture <span>PNG</span></button>
-          <button class="btn save" type="button" id="saveSvg" disabled>Picture <span>SVG, vector</span></button>
-          <button class="btn save" type="button" id="saveCsv" disabled>Every arrow's numbers <span>CSV</span></button>
-          <button class="btn save" type="button" id="saveWebm" disabled>Video of one drawing <span id="webmNote">WebM</span></button>
-          <button class="btn save" type="button" id="saveMp4" disabled hidden>Video of one drawing <span>MP4</span></button>
+        <div class="save-grid">
+          <button class="btn save" type="button" id="savePng" disabled><b>PNG</b><span>picture</span></button>
+          <button class="btn save" type="button" id="saveSvg" disabled><b>SVG</b><span>vector</span></button>
+          <button class="btn save" type="button" id="saveCsv" disabled><b>CSV</b><span>every arrow</span></button>
+          <button class="btn save" type="button" id="saveWebm" disabled><b>WebM</b><span id="webmNote">video</span></button>
+          <button class="btn save" type="button" id="saveMp4" disabled hidden><b>MP4</b><span>video</span></button>
         </div>
         <p class="small" id="saveMsg">Saves the drawing as it looks with the current number of arrows.</p>
       </div>

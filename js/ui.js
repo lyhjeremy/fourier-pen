@@ -44,7 +44,7 @@ export function syncMode() {
   const one = ui.modeOne.checked;
   ui.jumpsRow.hidden = one;
   ui.expJumpsRow.hidden = one;
-  ui.stLinkLabel.textContent = one ? 'Bridges added' : 'Pen jumps';
+  ui.stLinkLabel.textContent = one ? 'Bridges' : 'Pen jumps';
   ui.modeHint.textContent = one
     ? 'Strokes are joined by the shortest bridges, and the pen backtracks over its own ink instead of jumping.'
     : 'The pen finishes a stroke, then cuts straight across to the nearest unfinished one.';

@@ -29,11 +29,11 @@ Self-hosted in `fonts/`: Source Serif 4 (400, 600) for the title and the formula
 
 ## 4. Layout
 
-Two columns from 881 px: the stage takes the remaining width, the panel is 360 px. Below 880 px they stack, stage first. Max width 1280 px, 16 px gutters, safe-area insets respected. Stage aspect 5:4 on desktop, 1:1 on phones. Stage buttons sit top right inside the stage; the mono readout bottom left; a 4 px progress bar along the bottom edge during video export.
+One screen on desktop. From 881 px the page is two columns, stage then a 360 px panel, and both are exactly `--fit` tall: `clamp(420px, 100vh - 220px, 1400px)`, where 220 px is the writeup bar, the one-row header, the note, the footer and the gaps. The page itself does not scroll on a Full HD or MacBook display; a tab taller than the panel scrolls inside the panel. The header is one row: title, tagline at 13 px, theme button. Max width 1400 px, 16 px gutters, safe-area insets respected. Below 880 px the stage is square and the panel stacks beneath it. Stage buttons sit top right inside the stage; the mono readout bottom left; a 4 px progress bar along the bottom edge during video export.
 
 A "Read the full writeup" bar sits above the page, as on the sibling tools.
 
-The panel is sticky on desktop (top 16 px, scrolls inside itself if a tab is taller than the viewport) and shows one group at a time behind a five-tab strip: Picture, Outline, Drawing, Maths, Export. The strip sits on `--paper`; the selected tab is on `--panel` with a 2 px ink underline, no fill, no transition. Arrow keys move between tabs. Export shows the size preset, custom width and height (Custom only), a 240 px live preview with a mono caption and the five save buttons; line width, colours, transparent background, jumps, swap and margin sit behind a bordered disclosure labelled "Colours, line width and margin".
+The panel is sticky on desktop (top 16 px, scrolls inside itself if a tab is taller than the viewport) and shows one group at a time behind a five-tab strip: Picture, Outline, Drawing, Maths, Export. The strip sits on `--paper`; the selected tab is on `--panel` with a 2 px ink underline, no fill, no transition. Arrow keys move between tabs. Export shows the size preset, custom width and height (Custom only), a 200 px live preview with a one-line mono caption and five compact save buttons in a three-column grid (format in bold, purpose beneath); line width, colours, transparent background, jumps, swap and margin sit behind a bordered disclosure labelled "Colours, line width and margin".
 
 ## 5. Components
 

@@ -130,6 +130,12 @@ A log of judgment calls, newest last. Each entry says what was decided, why, and
 **Why:** With five groups stacked, the panel ran to about four screens and the drawing scrolled out of view while adjusting anything. Tabs keep every control one click away with the stage always visible. The groups keep their ids, so nothing in the pipeline code changed.
 **Rules out:** An accordion (two groups open at once looked like the old scroll), and moving the picture controls above the stage.
 
+## 2026-10-14: the page fits one screen on desktop
+
+**Decided:** On desktop the stage and the panel are both `clamp(420px, 100vh - 220px, 1400px)` tall, the header is a single row, the footer is one line, and the Maths tab shows 8 arrows instead of 10. Measured with headless Chromium: zero page overflow at 1920 by 969, 1512 by 862, 1440 by 790 and 1280 by 680; the Maths tab scrolls inside the panel only below about 800 px of viewport height.
+**Why:** The owner asked for no scrolling on a Full HD or MacBook screen. A fixed 5:4 stage was taller than a MacBook viewport.
+**Rules out:** The 5:4 stage aspect on desktop. Phones keep the square stage and stack.
+
 ## 2026-10-14: N = 4,096 stays
 
 **Decided:** The points dropdown offers 512 to 4,096.

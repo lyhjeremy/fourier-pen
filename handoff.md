@@ -57,6 +57,10 @@ cd ../_ai-projects-tooling/overview-pages && python3 build.py fragments/fourier-
 - `ffprobe` on this machine is broken (missing libx265), so the WebM was verified by size and by the browser's own recorder state, not by decoding.
 - Google Drive folder: large screenshot runs should go to the scratchpad, not the project folder, or Drive syncs them.
 
+## Layout check
+
+Desktop is designed to fit one screen: run `scratch/pw/fit.py` style checks (page scrollHeight minus innerHeight must be 0 at 1920x969, 1512x862, 1440x790, 1280x680). The Maths tab is allowed to scroll inside the panel below about 800 px of viewport height.
+
 ## Next steps
 
 1. Add the WAF rate-limit rule on `/api/generate` in the Vercel dashboard (Cloudflare's 10,000-neuron daily cap already bounds spending at zero, so this only protects the allowance). The Cloudflare token was pasted into a chat on 2026-10-14; rotate it in the Cloudflare profile's API Tokens page and update `CF_API_TOKEN` in Vercel. `CF_ACCOUNT_ID` and `CF_API_TOKEN` are set in Vercel for production and preview (account "Deep Tech Atlas"). The Gemini key was removed because its project has no image quota; the Gemini path stays in the code for a paid key.

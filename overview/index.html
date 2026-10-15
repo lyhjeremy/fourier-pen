@@ -365,6 +365,23 @@
   </section>
 
   <section class="stop">
+    <p class="eyebrow">&darr; the whole tool</p>
+    <h2>One screen, no scrolling</h2>
+    <p>
+      The drawing takes the left of the screen and every control lives in a tabbed panel
+      on the right: Picture, Outline, Drawing, Maths, Export. Both are sized to the
+      viewport, so on a Full HD monitor or a MacBook the page never scrolls and the
+      drawing stays in view while anything is adjusted. Light and dark themes follow the
+      system, with a toggle in the header.
+    </p>
+    <figure>
+      <img width="1600" height="878" class="shot" src="desktop-page.png" loading="lazy"
+        alt="The whole Fourier Pen page at 1440 by 790 pixels: the Einstein drawing in progress on the left stage with Play, Restart and Follow pen buttons, and the tabbed panel on the right showing the Picture tab with the drop zone, prompt field, example chips and two previews. Nothing is cut off and there is no scrollbar." />
+      <figcaption>The page at a 13-inch MacBook Air's viewport size, captured 2026-10-14. Stage and panel share one height.</figcaption>
+    </figure>
+  </section>
+
+  <section class="stop">
     <p class="eyebrow">&darr; watching it</p>
     <h2>Follow the pen</h2>
     <p>
@@ -380,14 +397,14 @@
     </figure>
     <p style="margin-top:26px">
       Beside the drawing the page shows the numbers it is using: the live equation with
-      the three largest terms, the ten largest arrows as a table (frequency, length,
+      the three largest terms, the eight largest arrows as a table (frequency, length,
       starting angle), and how much of the shape's energy, &Sigma;|c<sub>n</sub>|&sup2;,
       the current arrow count captures. Every one of those numbers is also in the CSV
       export, all N rows.
     </p>
     <figure>
-      <img width="900" height="2043" class="shot shot--narrow" src="maths-group.png" loading="lazy"
-        alt="The Maths tab: the coefficient formula, a live equation starting z(t) equals 0.329 e to the i(minus 1 times 2 pi t plus 1.70), a table of the ten largest arrows with turns, length bars and start angles, and a list of statistics ending with the transform time." />
+      <img width="900" height="1428" class="shot shot--narrow" src="maths-group.png" loading="lazy"
+        alt="The Maths tab: the coefficient formula, a live equation starting z(t) equals 0.379 e to the i(2 times 2 pi t plus 1.67), a table of the eight largest arrows with turns, length bars and start angles, and a list of statistics ending with the transform time." />
       <figcaption>The Maths tab for the Einstein example. The length bars are the only use of the second accent colour on the page.</figcaption>
     </figure>
   </section>
@@ -405,7 +422,7 @@
       the browser can encode it.
     </p>
     <figure>
-      <img width="900" height="1915" class="shot shot--narrow" src="export-group.png" loading="lazy"
+      <img width="900" height="1428" class="shot shot--narrow" src="export-group.png" loading="lazy"
         alt="The Export tab of the panel: a size preset select reading Square 2,048 by 2,048, a closed disclosure for colours, line width and margin, a square preview of the Einstein drawing with a mono caption, and buttons for PNG, SVG, CSV, WebM and MP4." />
       <figcaption>The Export tab. The colour, line-width and margin controls sit behind the disclosure; the preview updates as any of them change.</figcaption>
     </figure>
@@ -430,7 +447,7 @@
       function sees.
     </p>
     <figure>
-      <img width="900" height="1385" class="shot shot--narrow" src="source-group.png" loading="lazy"
+      <img width="900" height="1428" class="shot shot--narrow" src="source-group.png" loading="lazy"
         alt="The Picture tab of the panel under a five-tab strip: a dashed drop zone, a text field with the placeholder Albert Einstein sticking out his tongue and a Draw it button, five example chips, and two previews showing the Einstein photograph and its detected outlines." />
       <figcaption>The Picture tab: upload, describe, or pick an example. The right preview is the Canny edge map the strokes are traced from. The other four tabs hold the outline, drawing, maths and export controls.</figcaption>
     </figure>
@@ -445,7 +462,7 @@
       is a file picker on touch screens.
     </p>
     <figure>
-      <img width="780" height="2948" class="shot shot--narrow" src="mobile.png" loading="lazy"
+      <img width="780" height="2434" class="shot shot--narrow" src="mobile.png" loading="lazy"
         alt="Fourier Pen on a 390 pixel wide phone screen: the square drawing stage at the top with the Einstein line drawing in progress, then the tabbed panel below it showing the Picture tab." />
       <figcaption>390 px wide. The stage goes square and the tabbed panel sits below it. No horizontal scroll.</figcaption>
     </figure>

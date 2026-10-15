@@ -133,7 +133,7 @@ function renderNumbers() {
   let html = 'z(t) ≈ ' + app.model.coeffs.slice(0, show).map(termHTML).join(' + ');
   if (K > show) html += ` + … (${fmt(K - show)} more)`;
   ui.eq.innerHTML = html;
-  const top = app.model.coeffs.slice(0, Math.min(10, K)), maxA = top[0].amp || 1;
+  const top = app.model.coeffs.slice(0, Math.min(8, K)), maxA = top[0].amp || 1;
   ui.coefBody.innerHTML = top.map((c, i) =>
     `<tr><td>${i + 1}</td><td class="num">${num(c.f, 0)}</td><td class="num"><span class="bar" style="width:${Math.max(2, Math.round((c.amp / maxA) * 36))}px"></span>${c.amp.toFixed(4)}</td><td class="num">${num(phaseOf(c), 3)}</td></tr>`
   ).join('');
@@ -146,7 +146,7 @@ function initExport() {
   const mimes = videoMimes();
   const webm = mimes.find((m) => m.ext === 'webm'), mp4 = mimes.find((m) => m.ext === 'mp4');
   app.video = { webm, mp4 };
-  if (!webm && !mp4) { ui.webmNote.textContent = 'Not available in this browser'; }
+  if (!webm && !mp4) { ui.webmNote.textContent = 'not in this browser'; }
   else if (!webm && mp4) { ui.saveWebm.hidden = true; }
   if (mp4) ui.saveMp4.hidden = false;
 }
@@ -157,7 +157,7 @@ function updateExportPreview() {
     const o = exportOpts();
     ui.customRow.hidden = ui.preset.value !== 'custom';
     ui.sizeOut.textContent = `${fmt(o.width)} × ${fmt(o.height)} px`;
-    const c = ui.expPrev, maxSide = 240;
+    const c = ui.expPrev, maxSide = 200;
     const sc = maxSide / Math.max(o.width, o.height);
     const pw = Math.max(16, Math.round(o.width * sc)), ph = Math.max(16, Math.round(o.height * sc));
     c.width = pw; c.height = ph;
@@ -308,13 +308,13 @@ function frame(now) {
   drawScene(stage.ctx, stage.w, stage.h, {
     model: app.model, curve: app.curve, K: app.K, t: app.t, laps: app.laps,
     follow: app.follow, focus: app.focus, showCircles: ui.circles.checked, showJumps: !ui.modeOne.checked && ui.jumps.checked,
-    colors: app.sceneColors, lineWidth: 1.8, showFinished: true,
+    colors: app.sceneColors, lineWidth: 1.8, showFinished: true, scaleFrac: 0.46,
   }, chain);
   updateReadout();
   requestAnimationFrame(frame);
 }
 
-function setPlaying(p) { app.playing = p; ui.play.textContent = p ? 'Pause' : 'Play'; ui.play.setAttribute('aria-pressed', String(!p)); }
+function setPlaying(p) { app.playing = p; ui.play.textContent = p ? 'Pause' : 'Play'; }
 ui.play.addEventListener('click', () => setPlaying(!app.playing));
 ui.restart.addEventListener('click', () => {
   if (app.recording && videoAbort) { videoAbort.abort(); return; }
