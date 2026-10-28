@@ -256,6 +256,34 @@
   .runsheet th, .runsheet td { padding: 7px 14px; text-align: right; }
   .runsheet th:first-child, .runsheet td:first-child { text-align: left; }
   .runsheet .runsheet-foot { margin: 0; max-width: none; padding: 10px 16px; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: 14px; color: var(--muted); }
+
+  .epi { margin-top: 30px; border: 1px solid var(--edge); background: var(--card); }
+  .epi-head { display: flex; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; padding: 9px 16px; border-bottom: 1px solid var(--edge); font: 600 11.5px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .epi-ctl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--rule); }
+  .epi .seg { display: inline-flex; border: 1px solid var(--edge); }
+  .epi .seg button, .epi-play { font: 400 13.5px/1 var(--mono); padding: 9px 11px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+  .epi .seg button + button { border-left: 1px solid var(--edge); }
+  .epi .seg button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .epi-play { border: 1px solid var(--edge); }
+  .epi-play:hover, .epi .seg button:hover { outline: 1px solid var(--ink); outline-offset: -2px; }
+  .epi-body { display: grid; grid-template-columns: 1fr; }
+  @media (min-width: 820px) { .epi-body { grid-template-columns: minmax(0, 1fr) 270px; } .epi-side { border-left: 1px solid var(--rule); border-top: 0 !important; } }
+  .epi-stage { padding: 10px; }
+  .epi-stage canvas { display: block; width: 100%; }
+  .epi-side { padding: 14px 16px; border-top: 1px solid var(--rule); }
+  .epi-k { display: block; font: 400 13px/1.4 var(--mono); color: var(--muted); }
+  .epi-k b { font: 600 28px/1.1 var(--mono); color: var(--ink); letter-spacing: -.02em; }
+  .epi-side input[type=range] { width: 100%; accent-color: var(--accent); margin: 8px 0 12px; }
+  .epi-stats { margin: 0; font-family: var(--mono); font-size: 13.5px; }
+  .epi-stats div { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px dashed var(--rule); }
+  .epi-stats dt { color: var(--muted); } .epi-stats dd { margin: 0; font-weight: 600; color: var(--ink); text-align: right; }
+  .epi-eq-h { margin: 14px 0 4px; font: 600 11.5px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); max-width: none; }
+  .epi-tab { width: 100%; min-width: 0; font: 400 13px/1.4 var(--mono); border-collapse: collapse; }
+  .epi-tab th, .epi-tab td { padding: 4px 0; text-align: right; border-bottom: 1px solid var(--rule); }
+  .epi-tab th:first-child, .epi-tab td:first-child { text-align: left; }
+  .epi #epi-time { text-transform: none; letter-spacing: .02em; }
+  .epi-tab th { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--muted); }
+  .epi .epi-foot { margin: 0; max-width: none; padding: 10px 16px; border-top: 1px solid var(--rule); font-size: 14px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -338,25 +366,162 @@
       c<sub>n</sub> = (1/N) &Sigma;<sub>k</sub> z<sub>k</sub> e<sup>&minus;2&pi;ink/N</sup>.
       Sort the arrows by length and use the first K. A handful give a blurry, rounded
       ghost of the picture. All N reproduce it exactly, because the transform is
-      invertible. That is the whole trick, and the page shows it with sliders.
+      invertible. That is the whole trick. The panel below runs it on this page.
     </p>
+    <div class="epi" id="epi">
+      <div class="epi-head"><span>Live: the app's own modules, running here</span><span id="epi-time">loading</span></div>
+      <div class="epi-ctl">
+        <span class="seg" role="group" aria-label="Picture">
+          <button type="button" data-pic="einstein" aria-pressed="true">Einstein</button>
+          <button type="button" data-pic="pi" aria-pressed="false">&pi;</button>
+          <button type="button" data-pic="heart" aria-pressed="false">Heart</button>
+          <button type="button" data-pic="clef" aria-pressed="false">Clef</button>
+        </span>
+        <span class="seg" role="group" aria-label="Pen path">
+          <button type="button" data-mode="one" aria-pressed="true">One line</button>
+          <button type="button" data-mode="hop" aria-pressed="false">Hop</button>
+        </span>
+        <button type="button" class="epi-play" id="epi-play">Pause</button>
+      </div>
+      <div class="epi-body">
+        <div class="epi-stage"><canvas id="epi-canvas" width="560" height="560" role="img" aria-label="A chain of rotating arrows drawing the chosen picture as one line. The arrows slider sets how many arrows are used."></canvas></div>
+        <div class="epi-side">
+          <label class="epi-k" for="epi-k">Arrows <b id="epi-kv">31</b> <span id="epi-kof">of 2,048</span></label>
+          <input type="range" id="epi-k" min="0" max="1000" value="452">
+          <dl class="epi-stats">
+            <div><dt>Energy kept</dt><dd id="epi-e">&ndash;</dd></div>
+            <div><dt>Edge pixels</dt><dd id="epi-edges">&ndash;</dd></div>
+            <div><dt>Strokes</dt><dd id="epi-strokes">&ndash;</dd></div>
+            <div><dt id="epi-linkl">Bridges</dt><dd id="epi-links">&ndash;</dd></div>
+          </dl>
+          <p class="epi-eq-h">Largest arrows in use</p>
+          <table class="epi-tab"><thead><tr><th>n</th><th>|c<sub>n</sub>|</th><th>angle</th></tr></thead><tbody id="epi-top"></tbody></table>
+        </div>
+      </div>
+      <p class="epi-foot">Edge detection, path building and the transform run in your browser on 2,048 points with the app's default settings, so the energy figures match the captions further down. Drag the slider to 10 for the blurred silhouette and to the end for the exact line.</p>
+    </div>
+    <noscript>
     <div class="panels">
       <figure>
         <img width="1600" height="1282" class="shot" src="einstein-few-arrows.png" loading="lazy"
           alt="The finished drawing with only 10 arrows: a few large smooth loops that suggest the outline of a head and hair, with no facial detail." />
-        <figcaption><strong>10 arrows</strong>, 90.5% of the shape's energy. A blur with the right silhouette.</figcaption>
+        <figcaption><strong>10 arrows</strong>, 90.5% of the shape's energy.</figcaption>
       </figure>
       <figure>
         <img width="1600" height="1282" class="shot" src="einstein-some-arrows.png" loading="lazy"
           alt="The finished drawing with 31 arrows: smooth looping curves that follow the hair, brow and nose but round off every corner." />
-        <figcaption><strong>31 arrows</strong>, 97.8%. The face is there, every corner rounded.</figcaption>
+        <figcaption><strong>31 arrows</strong>, 97.8%.</figcaption>
       </figure>
       <figure>
         <img width="1600" height="1282" class="shot" src="einstein-all-arrows.png" loading="lazy"
           alt="The finished drawing with all 2,048 arrows: a sharp single-line portrait reproducing the traced outlines exactly." />
-        <figcaption><strong>2,048 arrows</strong>, 100.00%. The traced line, exactly.</figcaption>
+        <figcaption><strong>2,048 arrows</strong>, 100.00%.</figcaption>
       </figure>
     </div>
+    </noscript>
+    <script type="module">
+      import { toGray, canny, trace, keepFromDetail } from "../js/edges.js";
+      import { buildPath } from "../js/path.js";
+      import { dft, rebuildCurve, cumulativeEnergy, arrowsFromSlider, phaseOf } from "../js/fourier.js";
+      import { drawScene, sceneColors } from "../js/render.js";
+      import { sampleCanvas } from "../js/samples.js";
+
+      const N = 2048;
+      // The app's defaults (index.html sliders) and its Einstein override (samples.js).
+      const DEFAULTS = { detail: 35, smooth: 14, minlen: 10 };
+      const OVERRIDE = { einstein: { smooth: 20, minlen: 14 } };
+      const $ = (id) => document.getElementById(id);
+      const canvas = $("epi-canvas"), ctx = canvas.getContext("2d");
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const fmt = (n) => n.toLocaleString("en-US");
+      const chain = { X: new Float32Array(N + 2), Y: new Float32Array(N + 2) };
+      const st = { pic: "einstein", mode: "one", model: null, curve: null, K: 31, t: 0, laps: 0, playing: !reduce, visible: true, last: 0 };
+      const cache = {};
+
+      function colors() {
+        const cs = getComputedStyle(document.documentElement);
+        const hex = (v, fb) => { v = cs.getPropertyValue(v).trim(); return /^#[0-9a-f]{6}$/i.test(v) ? v : fb; };
+        return sceneColors(hex("--ink", "#191B1A"), hex("--card", "#F2F3EF"));
+      }
+      async function source(pic) {
+        if (cache[pic]) return cache[pic];
+        if (pic === "einstein") {
+          cache[pic] = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = "../samples/einstein.jpg"; });
+        } else {
+          try { await document.fonts.load('600 200px "Source Serif 4"'); } catch (e) { /* fall back to the stack */ }
+          cache[pic] = sampleCanvas(pic);
+        }
+        return cache[pic];
+      }
+      async function run() {
+        $("epi-time").textContent = "working";
+        const img = await source(st.pic);
+        const s = { ...DEFAULTS, ...(OVERRIDE[st.pic] || {}) };
+        const t0 = performance.now();
+        const { g, W, H } = toGray(img);
+        const edges = canny(g, W, H, s.smooth / 10, keepFromDetail(s.detail));
+        const { segs, edgeCount } = trace(edges, W, H, s.minlen);
+        const path = buildPath(segs, N, st.mode);
+        const t1 = performance.now();
+        const coeffs = dft(path.re, path.im);
+        const t2 = performance.now();
+        st.model = { N, coeffs, cumE: cumulativeEnergy(coeffs), jump: path.jump };
+        $("epi-edges").textContent = fmt(edgeCount);
+        $("epi-strokes").textContent = fmt(path.strokes);
+        $("epi-linkl").textContent = st.mode === "one" ? "Bridges" : "Jumps";
+        $("epi-links").textContent = fmt(path.links) + " / " + fmt(Math.round(path.linkLen)) + " px";
+        $("epi-time").textContent = Math.round(t2 - t1) + " ms DFT, " + Math.round(t2 - t0) + " ms total";
+        st.t = reduce ? 0.9999 : 0; st.laps = reduce ? 1 : 0;
+        setK();
+      }
+      function setK() {
+        if (!st.model) return;
+        st.K = arrowsFromSlider(+$("epi-k").value / 1000, N);
+        const m = st.model, e = (m.cumE[st.K] / m.cumE[m.cumE.length - 1]) * 100;
+        $("epi-kv").textContent = fmt(st.K);
+        $("epi-e").textContent = e.toFixed(e > 99.9 ? 2 : 1) + "%";
+        st.curve = rebuildCurve(m.coeffs, st.K, N);
+        $("epi-top").innerHTML = m.coeffs.slice(0, Math.min(5, st.K)).map((c) =>
+          `<tr><td>${c.f < 0 ? "−" : ""}${Math.abs(c.f)}</td><td>${c.amp.toFixed(4)}</td><td>${(phaseOf(c) < 0 ? "−" : "") + Math.abs(phaseOf(c)).toFixed(3)}</td></tr>`).join("");
+        if (!st.playing) paint();
+      }
+      function size() {
+        const w = Math.round(canvas.parentNode.clientWidth), dpr = Math.min(2, devicePixelRatio || 1);
+        canvas.style.height = w + "px";
+        canvas.width = w * dpr; canvas.height = w * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        st.w = w;
+      }
+      function paint() {
+        if (!st.model) return;
+        drawScene(ctx, st.w, st.w, {
+          model: st.model, curve: st.curve, K: st.K, t: st.t, laps: st.laps, colors: colors(),
+          showCircles: true, showJumps: st.mode === "hop", showFinished: true, lineWidth: st.w < 420 ? 1.4 : 1.8, scaleFrac: 0.46,
+        }, chain);
+      }
+      function frame(now) {
+        const dt = Math.min(0.1, (now - (st.last || now)) / 1000); st.last = now;
+        if (st.playing && st.visible && st.model) {
+          st.t += dt / 18; if (st.t >= 1) { st.t -= 1; st.laps++; }
+          paint();
+        }
+        requestAnimationFrame(frame);
+      }
+      function press(group, btn) { group.forEach((b) => b.setAttribute("aria-pressed", b === btn ? "true" : "false")); }
+      const pics = [...document.querySelectorAll("#epi [data-pic]")], modes = [...document.querySelectorAll("#epi [data-mode]")];
+      pics.forEach((b) => b.addEventListener("click", () => { st.pic = b.dataset.pic; press(pics, b); run(); }));
+      modes.forEach((b) => b.addEventListener("click", () => { st.mode = b.dataset.mode; press(modes, b); run(); }));
+      $("epi-k").addEventListener("input", setK);
+      const play = $("epi-play");
+      if (reduce) play.hidden = true;
+      play.addEventListener("click", () => { st.playing = !st.playing; play.textContent = st.playing ? "Pause" : "Play"; if (!st.playing) paint(); });
+      new IntersectionObserver((es) => { st.visible = es[0].isIntersecting; }).observe(canvas);
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paint);
+      addEventListener("resize", () => { size(); paint(); });
+      size();
+      run().catch(() => { $("epi-time").textContent = "could not load the picture"; });
+      requestAnimationFrame(frame);
+    </script>
     <div class="runsheet">
       <div class="runsheet-head"><span>Run sheet: Einstein example</span><span>from the Maths tab</span></div>
       <div class="runsheet-grid">

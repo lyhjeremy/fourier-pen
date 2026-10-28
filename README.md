@@ -4,6 +4,8 @@ A browser tool that finds the outlines in a picture, joins them into one continu
 
 [Live app](https://fourier-pen.vercel.app/) · [Write-up](https://fourier-pen.vercel.app/overview/)
 
+The write-up has a working copy of the drawing: it imports the app's own edge, path and Fourier modules and runs them on the built-in examples, with a slider for the number of arrows.
+
 Design and copy follow [these standards](https://github.com/lyhjeremy/lyhjeremy/blob/main/DESIGN_STANDARDS.md).
 
 ![Fourier Pen three quarters of the way through drawing Einstein's 1947 portrait as one continuous line, with a chain of grey arrows and circles reaching the pen tip](overview/einstein-light-t75.png)
