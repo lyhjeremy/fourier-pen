@@ -273,7 +273,7 @@
       Give it a picture. It finds the outlines, joins them into <strong>one continuous
       line</strong>, and takes the discrete Fourier transform of that line. Each
       coefficient becomes an arrow that turns at its own speed; stacked tip to tail,
-      the arrows trace the picture back out. The math is on the page in real numbers,
+      the arrows trace the picture back out. The math is on the page with every number filled in,
       the drawing saves as a wallpaper, a vector, a CSV or a video, and the picture
       never leaves your browser.
     </p>
@@ -301,8 +301,7 @@
       </div>
       <div class="claim">
         <div class="n">8 ms</div>
-        <p>for the full discrete Fourier transform at 2,048 points, direct O(N squared),
-           no FFT. The page reports its own timing.</p>
+        <p>for the full discrete Fourier transform at 2,048 points, computed directly in O(N squared) time without an FFT. The page reports its own timing.</p>
       </div>
       <div class="claim">
         <div class="n">0 bytes</div>
@@ -393,8 +392,7 @@
     <p class="eyebrow">Path building</p>
     <h2>Getting one line out of a photograph</h2>
     <p>
-      The Fourier step is ten lines of code. The work is upstream: a photograph is not a
-      line. The page scales the picture to 360 px, stretches its contrast, and runs a
+      The Fourier step is ten lines of code. Most of the work comes before it, because a photograph starts out as pixels. The page scales the picture to 360 px, stretches its contrast, and runs a
       Canny edge detector written by hand (Gaussian blur, Sobel gradients, non-maximum
       suppression, hysteresis). That gives edge pixels. Walking them greedily gives
       strokes: for the Einstein example, <strong>103 separate strokes</strong>
@@ -431,8 +429,7 @@
     </div>
     <div class="pull">
       <p>The iterative Euler tour that shipped is tested against the recursive version from
-         the prototype, point for point, on 300 random strokes. Same output, no recursion
-         limit.</p>
+         the prototype, point for point, on 300 random strokes. The output matches, and the new version has no recursion limit.</p>
       <span class="who">tests/path.test.js</span>
     </div>
   </section>
@@ -509,7 +506,7 @@
       which wraps it in a fixed instruction ("a clean single-line drawing of &hellip;,
       black ink on white, continuous outlines only") and asks an image model for a
       picture: FLUX.1 schnell on Cloudflare Workers AI, whose free plan allows 10,000
-      "neurons" a day, enough for hundreds of images, and fails rather than bills past that. The returned image drops into the same pipeline as an upload. The
+      "neurons" a day, enough for hundreds of images; past that, requests fail and nothing is billed. The returned image drops into the same pipeline as an upload. The
       function holds the API key, checks the request came from this site, limits each
       address to ten prompts in ten minutes, and keeps nothing.
     </p>
@@ -543,20 +540,18 @@
 
   <section class="stop stop--warn">
     <p class="eyebrow">Limitations</p>
-    <h2>Edge detection is not drawing</h2>
+    <h2>What edge detection misses</h2>
     <p>
-      Canny finds contrast, not meaning. Hair, fabric texture and a busy background all
+      Canny finds contrast and knows nothing about what it is looking at. Hair, fabric texture and a busy background all
       produce edges, and a face with soft lighting produces few. The Einstein example
       works because it is a studio portrait with a plain background, and even then it
       opens with smoothing raised to 2.0 px and strokes under 14 px dropped. Snapshots
-      with cluttered backgrounds come out as scribble. A learned line-art model would
-      do better; this version doesn't have one.
+      with cluttered backgrounds come out as scribble. A learned line-art model would do better, and this version doesn't have one.
     </p>
     <p>
       Greedy stroke tracing leaves orphan fragments at junctions; the length cut-off
       hides most of them. In continuous mode every stroke is drawn twice, so it needs
-      about double the sample points for the same detail, which is why the default is
-      2,048 and not 1,024. Video export runs in real time because MediaRecorder cannot
+      about double the sample points for the same detail, which is why the default is 2,048 points (the slider also offers 512, 1,024 and 4,096). Video export runs in real time because MediaRecorder cannot
       run faster than the screen, so an 18-second drawing takes 18 seconds to save, and
       it is capped at 1,920 px on the long side.
     </p>

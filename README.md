@@ -23,12 +23,15 @@ Inspired by the epicycle drawings in 3Blue1Brown's "But what is a Fourier series
 
 ## What it does
 
-- Input: upload, drop or paste a picture, pick one of five built-in examples, or type a short prompt and let an image model draw a line-art version first.
-- One continuous line: strokes are joined by the shortest bridges (a minimum spanning tree) and the pen retraces its own ink instead of lifting, so the drawing is a single closed curve. A hop mode with straight pen jumps is there for comparison.
-- The math, live: the general formula, the three largest terms with real numbers, the eight largest arrows in a table, and how much of the shape's energy the current arrow count captures.
-- Export: PNG at wallpaper sizes (iPhone, MacBook, Full HD, 4K, 5K or custom up to 8,192 px) in your own line and background colors, SVG, a CSV of every coefficient, and a WebM or MP4 video of one full drawing.
+You can upload, drop or paste a picture, pick one of five built-in examples, or type a short prompt and let an image model draw a line-art version first.
 
-Uploaded pictures never leave the browser. A text prompt is the one thing sent to a server (this site's own function, which forwards it to Cloudflare Workers AI). See the [privacy page](https://fourier-pen.vercel.app/privacy/).
+The strokes it finds are joined by the shortest bridges (a minimum spanning tree), and the pen retraces its own ink where it would otherwise lift, so the drawing is a single closed curve. A hop mode with straight pen jumps is there for comparison.
+
+The math is shown live beside the drawing: the general formula, the three largest terms with their numbers filled in, the eight largest arrows in a table, and how much of the shape's energy the current arrow count captures.
+
+Exports cover PNG at wallpaper sizes (iPhone, MacBook, Full HD, 4K, 5K or custom up to 8,192 px) in your own line and background colors, SVG, a CSV of every coefficient, and a WebM or MP4 video of one full drawing.
+
+Uploaded pictures never leave the browser. The only thing sent to a server is a text prompt, which goes to this site's own function and on to Cloudflare Workers AI. See the [privacy page](https://fourier-pen.vercel.app/privacy/).
 
 ## Method
 
@@ -42,7 +45,7 @@ The direct O(N squared) transform is fast enough at these sizes (the page report
 
 ## Stack
 
-Plain HTML, CSS and ES modules on a 2D canvas, no framework and no bundler. One Vercel serverless function for text prompts, calling Cloudflare Workers AI (FLUX.1 schnell) or Google Gemini. MediaRecorder for video. 18 Node tests on the pure modules.
+The app is plain HTML, CSS and ES modules on a 2D canvas, with no framework or bundler. There is one Vercel serverless function for text prompts, calling Cloudflare Workers AI (FLUX.1 schnell) or Google Gemini; MediaRecorder handles video, and 18 Node tests cover the pure modules.
 
 ## How to run
 
@@ -52,7 +55,7 @@ No build step. Serve the folder with any static server:
 npx serve .
 ```
 
-The text prompt feature needs the serverless function and an image provider. The default is Cloudflare Workers AI, whose free plan allows 10,000 neurons a day (hundreds of FLUX.1 schnell images) and fails rather than bills past that. Google Gemini is supported too but has no free image quota.
+The text prompt feature needs the serverless function and an image provider. The default is Cloudflare Workers AI, whose free plan allows 10,000 neurons a day (hundreds of FLUX.1 schnell images); past that, requests fail and nothing is billed. Google Gemini is supported too but has no free image quota.
 
 ```
 cp .env.example .env.local     # put CF_ACCOUNT_ID and CF_API_TOKEN in it
@@ -82,7 +85,7 @@ The site is a Vercel project; pushing to `main` deploys. Set `CF_ACCOUNT_ID` and
 
 ## Limitations
 
-- Canny finds contrast, not meaning. Studio portraits on plain backgrounds work; cluttered snapshots come out as scribble.
+- Canny finds contrast and knows nothing about what is in the picture. Studio portraits on plain backgrounds work; cluttered snapshots come out as scribble.
 - In continuous mode every stroke is drawn twice, so it needs about double the sample points for the same detail.
 - Video export runs in real time and is capped at 1,920 px on the long side.
 - Text prompts depend on a third-party model and its daily allowance.
