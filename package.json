@@ -5,7 +5,7 @@
   "description": "Any picture, one line, a chain of spinning arrows. A Fourier series drawing machine in the browser.",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test tests/*.test.js",
     "serve": "npx serve -l 5173 .",
     "dev": "vercel dev"
   },
