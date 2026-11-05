@@ -1,6 +1,7 @@
 # Fourier Pen
 
-A browser tool that finds the outlines in a picture, joins them into one continuous line, and redraws it with a chain of rotating arrows: a complex Fourier series you can watch, read and export.
+An epicycle drawing needs the picture as one closed line, and the edges found in a photo come out as dozens of separate strokes.
+Fourier Pen joins them into one line in the browser and redraws it with rotating arrows: on the Einstein portrait, 103 strokes join with 102 bridges, 10 arrows keep 90.5% of the shape's energy, 31 keep 97.8% and all 2,048 redraw it exactly; 18 Node tests cover the pure modules.
 
 [Live app](https://fourier-pen.vercel.app/) · [Write-up](https://fourier-pen.vercel.app/overview/)
 

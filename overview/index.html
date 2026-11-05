@@ -288,6 +288,17 @@
   .epi #epi-time { text-transform: none; letter-spacing: .02em; }
   .epi-tab th { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--muted); }
   .epi .epi-foot { margin: 0; max-width: none; padding: 10px 16px; border-top: 1px solid var(--rule); font-size: 14px; color: var(--muted); }
+
+  /* At a glance: a three-column job ticket under the hero text */
+  .ticket { margin-top: 28px; border-top: 3px solid var(--ink); border-bottom: 1px solid var(--edge); }
+  .ticket-h { margin: 0; padding: 8px 0; max-width: none; font: 600 11.5px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--rule); }
+  .ticket-grid { display: grid; grid-template-columns: 1fr; margin: 0; }
+  @media (min-width: 820px) { .ticket-grid { grid-template-columns: 1fr 1fr 1fr; } .ticket-grid > div + div { border-left: 1px solid var(--rule); padding-left: 18px; } }
+  .ticket-grid > div { padding: 12px 18px 14px 0; }
+  @media (max-width: 819px) { .ticket-grid > div + div { border-top: 1px solid var(--rule); } }
+  .ticket dt { font: 600 12px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  .ticket dd { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .ticket dd b { font-family: var(--mono); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -303,17 +314,24 @@
 
     <p class="hero-sub">
       Give it a picture. It finds the outlines, joins them into <strong>one continuous
-      line</strong>, and takes the discrete Fourier transform of that line. Each
-      coefficient becomes an arrow that turns at its own speed; stacked tip to tail,
-      the arrows trace the picture back out. The math is on the page with every number filled in,
-      the drawing saves as a wallpaper, a vector, a CSV or a video, and the picture
-      never leaves your browser.
+      line</strong> and takes the discrete Fourier transform of that line. Each
+      coefficient becomes an arrow turning at its own speed, and stacked tip to tail
+      the arrows trace the picture back out, with the math shown beside them.
     </p>
 
     <div class="cta-row">
       <a class="btn btn-primary" href="../">Draw something</a>
       <a class="textlink" href="https://github.com/lyhjeremy/fourier-pen">or read the code</a>
     </div>
+
+    <section class="ticket" aria-labelledby="ticket-h">
+      <h2 class="ticket-h" id="ticket-h">At a glance</h2>
+      <dl class="ticket-grid">
+        <div><dt>What it does</dt><dd>Picture in, one closed line out, redrawn by <b>2,048</b> rotating arrows by default. On the Einstein portrait, <b>10</b> arrows keep 90.5% of the shape's energy, <b>31</b> keep 97.8%, and all 2,048 reproduce the line exactly.</dd></div>
+        <div><dt>How it is tested</dt><dd><b>18</b> Node tests on the pure modules: all N arrows rebuild the path, the one-line tour matches a recursive reference on 300 random strokes and has no jumps, and the SVG and CSV exports have the right shape. The direct DFT took <b>8 ms</b> at 2,048 points and 21 ms at 4,096 in Chromium.</dd></div>
+        <div><dt>Limits</dt><dd>Canny sees contrast, not content: studio portraits work, cluttered snapshots come out as scribble. One-line mode draws every stroke twice, so it needs about double the points. Video saves in real time, capped at 1,920 px, and text prompts depend on a third-party model's daily allowance.</dd></div>
+      </dl>
+    </section>
 
     <figure style="margin-top:38px">
       <img width="1600" height="1282" class="shot" src="einstein-light-t75.png" fetchpriority="high"
