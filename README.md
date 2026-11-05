@@ -63,6 +63,7 @@ npx serve .
 The text prompt feature needs the serverless function and an image provider. The default is Cloudflare Workers AI, whose free plan allows 10,000 neurons a day (hundreds of FLUX.1 schnell images); past that, requests fail and nothing is billed. Google Gemini is supported too but has no free image quota.
 
 ```
+npm i -g vercel                # the Vercel CLI; `vercel dev` asks you to log in and link a project
 cp .env.example .env.local     # put CF_ACCOUNT_ID and CF_API_TOKEN in it
 vercel dev
 ```
